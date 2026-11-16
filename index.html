@@ -39,54 +39,54 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
       <!-- Core Attributes & Derived Stats -->
       <div class="card md:col-span-1">
-        <h2 class="text-lg font-bold mb-4 border-b border-slate-700 pb-2 text-sky-300">Core Attributes</h2>
+        <h2 class="text-lg font-bold mb-4 border-b border-slate-700 pb-2 text-sky-300">Core Attributes & Derived Stats</h2>
         <div class="space-y-3">
           <div>
             <label class="block text-xs font-semibold text-slate-400">Operative Name</label>
-            <input type="text" id="opName" value="Sjohn Smith" class="w-full border rounded p-2 text-sm font-bold">
+            <input type="text" id="opName" value="Vex "Bore-Blade" Thorne" class="w-full border rounded p-2 text-sm font-bold">
           </div>
           <div class="flex justify-between items-center bg-slate-800 p-2 rounded border border-slate-700">
             <span class="text-xs font-bold text-amber-400">Unspent Attribute Points:</span>
             <div class="flex items-center gap-2">
               <button onclick="adjustUnspent(-1)" class="bg-slate-700 hover:bg-slate-600 px-2 py-0.5 rounded text-xs font-bold">-</button>
-              <span id="unspentPts" class="font-mono font-bold text-sm">4</span>
+              <span id="unspentPts" class="font-mono font-bold text-sm">8</span>
               <button onclick="adjustUnspent(1)" class="bg-slate-700 hover:bg-slate-600 px-2 py-0.5 rounded text-xs font-bold">+</button>
             </div>
           </div>
           <div class="grid grid-cols-2 gap-2">
-            <div><label class="text-xs text-slate-400">STR</label><input type="number" id="attrSTR" value="16" oninput="calculateStats()" class="w-full border rounded p-1.5 text-center font-bold"></div>
-            <div><label class="text-xs text-slate-400">DEX</label><input type="number" id="attrDEX" value="14" oninput="calculateStats()" class="w-full border rounded p-1.5 text-center font-bold"></div>
-            <div><label class="text-xs text-slate-400">CON</label><input type="number" id="attrCON" value="16" oninput="calculateStats()" class="w-full border rounded p-1.5 text-center font-bold"></div>
-            <div><label class="text-xs text-slate-400">WIS</label><input type="number" id="attrWIS" value="18" oninput="calculateStats()" class="w-full border rounded p-1.5 text-center font-bold"></div>
-            <div class="col-span-2"><label class="text-xs text-slate-400">INT</label><input type="number" id="attrINT" value="14" oninput="calculateStats()" class="w-full border rounded p-1.5 text-center font-bold"></div>
+            <div><label class="text-xs text-slate-400">STR</label><input type="number" id="attrSTR" value="14" oninput="calculateStats()" class="w-full border rounded p-1.5 text-center font-bold"></div>
+            <div><label class="text-xs text-slate-400">DEX</label><input type="number" id="attrDEX" value="16" oninput="calculateStats()" class="w-full border rounded p-1.5 text-center font-bold"></div>
+            <div><label class="text-xs text-slate-400">CON</label><input type="number" id="attrCON" value="12" oninput="calculateStats()" class="w-full border rounded p-1.5 text-center font-bold"></div>
+            <div><label class="text-xs text-slate-400">WIS</label><input type="number" id="attrWIS" value="10" oninput="calculateStats()" class="w-full border rounded p-1.5 text-center font-bold"></div>
+            <div class="col-span-2"><label class="text-xs text-slate-400">INT</label><input type="number" id="attrINT" value="10" oninput="calculateStats()" class="w-full border rounded p-1.5 text-center font-bold"></div>
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-400">Height (ft)</label>
             <input type="number" id="charHeight" value="5" oninput="calculateStats()" class="w-full border rounded p-1.5 text-center font-bold">
           </div>
           <div class="space-y-1 text-xs text-slate-300 bg-slate-900 p-3 rounded border border-slate-800 font-mono">
-            <div>Bonus Dmg (STR/2): <span id="resStrDmg" class="font-bold text-sky-400">8</span></div>
-            <div>Attack Accuracy (DEX/5): <span id="resAccuracy" class="font-bold text-sky-400">2</span></div>
-            <div>Tangible Hit (DEX/2): <span id="resTangible" class="font-bold text-sky-400">7</span></div>
-            <div>Non-Combat Move: <span id="resNonCombat" class="font-bold text-sky-400">7 ft</span></div>
-            <div>Combat Move: <span id="resCombat" class="font-bold text-sky-400">12 ft</span></div>
+            <div>Bonus Dmg (STR/2): <span id="resStrDmg" class="font-bold text-sky-400">+2</span></div>
+            <div>Attack Accuracy (DEX/5): <span id="resAccuracy" class="font-bold text-sky-400">+3</span></div>
+            <div>Tangible Hit (DEX/2): <span id="resTangible" class="font-bold text-sky-400">14</span></div>
+            <div>Non-Combat Move: <span id="resNonCombat" class="font-bold text-sky-400">16 ft</span></div>
+            <div>Combat Move: <span id="resCombat" class="font-bold text-sky-400">8 ft</span></div>
           </div>
         </div>
       </div>
 
       <!-- Vitals & Status Matrix -->
       <div class="card md:col-span-2 space-y-4">
-        <h2 class="text-lg font-bold mb-4 border-b border-slate-700 pb-2 text-sky-300">Vitals & Status Matrix</h2>
+        <h2 class="text-lg font-bold mb-4 border-b border-slate-700 pb-2 text-sky-300">Vitals, Status Matrix & Afflictions</h2>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div class="bg-slate-900 p-3 rounded border border-slate-800">
             <label class="block text-xs font-semibold text-slate-400">Current Flesh HP</label>
-            <input type="number" id="currHP" value="34" class="w-full border rounded p-2 text-lg font-black text-emerald-400 text-center">
-            <div class="text-[10px] text-slate-500 text-center mt-1">Max HP: <span id="maxHP">37</span></div>
+            <input type="number" id="currHP" value="22" class="w-full border rounded p-2 text-lg font-black text-emerald-400 text-center">
+            <div class="text-[10px] text-slate-500 text-center mt-1">Max HP: <span id="maxHP">24</span></div>
           </div>
           <div class="bg-slate-900 p-3 rounded border border-slate-800">
             <label class="block text-xs font-semibold text-slate-400">Mana Capacity</label>
-            <input type="number" id="currMana" value="28" class="w-full border rounded p-2 text-lg font-black text-sky-400 text-center">
-            <div class="text-[10px] text-slate-500 text-center mt-1">Max Mana: <span id="maxMana">28</span></div>
+            <input type="number" id="currMana" value="10" class="w-full border rounded p-2 text-lg font-black text-sky-400 text-center">
+            <div class="text-[10px] text-slate-500 text-center mt-1">Max Mana: <span id="maxMana">10</span></div>
           </div>
           <div class="bg-slate-900 p-3 rounded border border-slate-800">
             <label class="block text-xs font-semibold text-slate-400">Action Points (AP)</label>
@@ -106,9 +106,8 @@
           </label>
         </div>
 
-        <!-- MARK TAB TOGGLE & ELEMENTAL AFFLICTIONS -->
+        <!-- MARK TAB & AFFLICTIONS -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <!-- Mark Tab -->
           <div class="bg-slate-900 p-3 rounded border border-slate-800 space-y-2">
             <div class="flex justify-between items-center">
               <span class="text-xs font-bold text-amber-300">🎯 MARK TAB</span>
@@ -127,15 +126,15 @@
                 <option value="Wind">Wind</option>
               </select>
             </div>
-            <div class="text-[10px] text-slate-400 space-y-0.5 bg-slate-800 p-2 rounded">
-              <div>(+) Add Element Level (<span id="markLvlBonus">1</span>) to attack damage</div>
-              <div>(-) Take +(<span id="markLvlBonus2">1</span>) from opposing element</div>
+            <div class="text-[10px] text-slate-400 space-y-0.5 bg-slate-800 p-2 rounded font-mono">
+              <div>(+) Add Element Level (+<span id="markLvlBonus">5</span>) to attack</div>
+              <div>(-) Take +(<span id="markLvlBonus2">5</span>) from opposing element</div>
             </div>
           </div>
 
-          <!-- Active Afflictions Matrix -->
+          <!-- Afflictions Matrix -->
           <div class="bg-slate-900 p-3 rounded border border-slate-800 space-y-2">
-            <span class="text-xs font-bold text-red-400">⚠️ ACTIVE AFFLICTIONS</span>
+            <span class="text-xs font-bold text-red-400">⚠️ ACTIVE AFFLICTIONS (MULTI-STACK)</span>
             <div class="space-y-1.5 text-xs">
               <div class="flex justify-between items-center bg-slate-800 p-1.5 rounded">
                 <span>🌊 Cold</span>
@@ -161,11 +160,11 @@
           </div>
         </div>
 
-        <!-- Disease & Poison High-Visibility Banners -->
+        <!-- Disease & Poison Banners -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div class="flex items-center justify-between bg-red-950/80 border border-red-600 p-3 rounded">
             <div>
-              <div class="text-xs font-bold text-red-300">BIOLOGICAL DISEASE</div>
+              <div class="text-xs font-bold text-red-300">DISEASE: CAN'T HEAL</div>
               <div class="text-[10px] text-red-400">Blocks all healing & HP recovery</div>
             </div>
             <label class="relative inline-flex items-center cursor-pointer">
@@ -175,8 +174,8 @@
           </div>
           <div class="flex items-center justify-between bg-lime-950/80 border border-lime-600 p-3 rounded">
             <div>
-              <div class="text-xs font-bold text-lime-300">TOXIC POISON</div>
-              <div class="text-[10px] text-lime-400">Takes damage from all healing</div>
+              <div class="text-xs font-bold text-lime-300">POISON: TAKE DMG FROM HEALING</div>
+              <div class="text-[10px] text-lime-400">Converts healing into damage</div>
             </div>
             <label class="relative inline-flex items-center cursor-pointer">
               <input type="checkbox" id="statusPoison" onchange="pushState()" class="sr-only peer">
@@ -189,25 +188,25 @@
 
     <!-- Slotted Monster Cores & Stat Multipliers -->
     <div class="card">
-      <h2 class="text-lg font-bold mb-4 border-b border-slate-700 pb-2 text-sky-300">Slotted Monster Cores & Stat Multipliers</h2>
+      <h2 class="text-lg font-bold mb-4 border-b border-slate-700 pb-2 text-sky-300">Slotted Monster Cores & Stat Multiplier Engine</h2>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div class="space-y-3 bg-slate-900 p-3 rounded border border-slate-800">
           <label class="text-xs font-bold text-slate-300 block">Core 1 Slot</label>
           <div class="grid grid-cols-2 gap-2">
-            <select id="core1Grade" onchange="pushState()" class="text-xs p-1.5 rounded"><option value="0">None [0pt]</option><option value="1">D-Grade [1pt]</option><option value="2">C-Grade [2pt]</option><option value="3">B-Grade [3pt]</option><option value="4">A-Grade [4pt]</option><option value="5" selected>S-Grade [5pt]</option></select>
-            <select id="core1Target" onchange="pushState()" class="text-xs p-1.5 rounded"><option value="hp" selected>HP (×Pts Mult)</option><option value="movement">Movement (×Pts)</option><option value="ap">AP Pool (×Pts)</option><option value="mana">Mana Pool (×Pts)</option><option value="element">Boost Elem Dmg</option></select>
+            <select id="core1Grade" onchange="calculateStats()" class="text-xs p-1.5 rounded"><option value="0">None [0pt]</option><option value="1">D-Grade [1pt]</option><option value="2">C-Grade [2pt]</option><option value="3">B-Grade [3pt]</option><option value="4">A-Grade [4pt]</option><option value="5" selected>S-Grade [5pt]</option></select>
+            <select id="core1Target" onchange="calculateStats()" class="text-xs p-1.5 rounded"><option value="hp" selected>HP (×Pts Mult)</option><option value="movement">Movement (×Pts)</option><option value="ap">AP Pool (×Pts)</option><option value="mana">Mana Pool (×Pts)</option><option value="element">Boost Elem Dmg</option></select>
           </div>
         </div>
         <div class="space-y-3 bg-slate-900 p-3 rounded border border-slate-800">
           <label class="text-xs font-bold text-slate-300 block">Core 2 Slot</label>
           <div class="grid grid-cols-2 gap-2">
-            <select id="core2Grade" onchange="pushState()" class="text-xs p-1.5 rounded"><option value="0" selected>None [0pt]</option><option value="1">D-Grade [1pt]</option><option value="2">C-Grade [2pt]</option><option value="3">B-Grade [3pt]</option><option value="4">A-Grade [4pt]</option><option value="5">S-Grade [5pt]</option></select>
-            <select id="core2Target" onchange="pushState()" class="text-xs p-1.5 rounded"><option value="hp">HP (×Pts Mult)</option><option value="movement">Movement (×Pts)</option><option value="ap">AP Pool (×Pts)</option><option value="mana">Mana Pool (×Pts)</option><option value="element">Boost Elem Dmg</option></select>
+            <select id="core2Grade" onchange="calculateStats()" class="text-xs p-1.5 rounded"><option value="0" selected>None [0pt]</option><option value="1">D-Grade [1pt]</option><option value="2">C-Grade [2pt]</option><option value="3">B-Grade [3pt]</option><option value="4">A-Grade [4pt]</option><option value="5">S-Grade [5pt]</option></select>
+            <select id="core2Target" onchange="calculateStats()" class="text-xs p-1.5 rounded"><option value="hp">HP (×Pts Mult)</option><option value="movement">Movement (×Pts)</option><option value="ap">AP Pool (×Pts)</option><option value="mana">Mana Pool (×Pts)</option><option value="element">Boost Elem Dmg</option></select>
           </div>
         </div>
       </div>
       <div class="mt-3 text-xs text-slate-400 bg-slate-800 p-3 rounded border border-slate-700 font-mono">
-        <div>Multiplier Engine Active: Base stat multiplied by slotted core points (e.g. S-Core [5pt] on HP multiplies Max HP by 5).</div>
+        <div>Multiplier Active: Base Total multiplied by slotted Core Points (e.g., Base HP 25 × 5pt S-Core = 125 HP).</div>
       </div>
     </div>
   </div>
@@ -223,7 +222,7 @@
         <div class="bg-slate-900 border border-slate-700 px-4 py-2 rounded-xl flex items-center gap-4">
           <div>
             <div class="text-[10px] text-slate-400 font-bold uppercase">Phalanx Perception (Party WIS Pool)</div>
-            <div id="gmPartyPerception" class="text-lg font-black text-sky-400 font-mono">18</div>
+            <div id="gmPartyPerception" class="text-lg font-black text-sky-400 font-mono">10</div>
           </div>
         </div>
       </div>
@@ -252,7 +251,7 @@
         </div>
         <div class="bg-slate-800 p-2 rounded border border-slate-700 text-center">
           <div id="insurResult" class="text-xs font-black text-emerald-400">RESCUE SUCCESS</div>
-          <div id="insurDetails" class-[10px] text-slate-400 text-[10px]">Power (75) vs DC (12)</div>
+          <div id="insurDetails" class="text-[10px] text-slate-400">Power (75) vs DC (12)</div>
         </div>
       </div>
 
@@ -314,7 +313,6 @@
       const wis = parseInt(document.getElementById('attrWIS').value) || 1;
       const int = parseInt(document.getElementById('attrINT').value) || 1;
       const height = parseInt(document.getElementById('charHeight').value) || 5;
-      const isSB = document.getElementById('isShieldBearer').checked;
 
       const strDmg = Math.floor(str / 2);
       const acc = Math.floor(dex / 5);
@@ -322,8 +320,8 @@
       const nonCombat = (dex * 2) + height;
       const combat = Math.floor(dex / 2) + height;
 
-      document.getElementById('resStrDmg').innerText = strDmg;
-      document.getElementById('resAccuracy').innerText = acc;
+      document.getElementById('resStrDmg').innerText = "+" + strDmg;
+      document.getElementById('resAccuracy').innerText = "+" + acc;
       document.getElementById('resTangible').innerText = tangible;
       document.getElementById('resNonCombat').innerText = nonCombat + " ft";
       document.getElementById('resCombat').innerText = combat + " ft";
@@ -344,8 +342,10 @@
 
       document.getElementById('maxHP').innerText = baseHP;
       document.getElementById('maxMana').innerText = maxMana;
-      document.getElementById('markLvlBonus').innerText = Math.floor(maxMana / 10) || 1;
-      document.getElementById('markLvlBonus2').innerText = Math.floor(maxMana / 10) || 1;
+      
+      const markBonus = Math.floor(maxMana / 10) || 1;
+      document.getElementById('markLvlBonus').innerText = markBonus;
+      document.getElementById('markLvlBonus2').innerText = markBonus;
 
       pushState();
     }
@@ -387,10 +387,12 @@
       set(ref(db, `rooms/${currentRoom}/operatives/${clientId}`), state);
     }
 
-    // Attach listeners
-    ['opName', 'currHP', 'currMana', 'currAP', 'markElement', 'affCold', 'affFire', 'affWind', 'affLightning', 'affEarth', 'core1Grade', 'core1Target', 'core2Grade', 'core2Target'].forEach(id => {
-      document.getElementById(id).addEventListener('input', pushState);
-      document.getElementById(id).addEventListener('change', pushState);
+    ['opName', 'currHP', 'currMana', 'currAP', 'markElement', 'affCold', 'affFire', 'affWind', 'affLightning', 'affEarth', 'statusDisease', 'statusPoison', 'markActive'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.addEventListener('input', pushState);
+        el.addEventListener('change', pushState);
+      }
     });
 
     document.getElementById('updateRoomBtn').addEventListener('click', () => {
@@ -426,24 +428,29 @@
 
       document.getElementById('gmPartyPerception').innerText = totalPartyWis;
 
-      // Sort by Non-Combat Movement (Initiative) descending
+      // Sort by Non-Combat Movement descending
       ops.sort((a, b) => parseInt(b.nonCombat) - parseInt(a.nonCombat));
 
       ops.forEach((op, idx) => {
-        // Turn order chip
         turnOrderList.innerHTML += `<div class="bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-lg text-xs font-mono font-bold text-sky-300">#${idx+1} ${op.name} (${op.nonCombat})</div>`;
 
         let badges = '';
         if (op.disease) badges += `<span class="bg-red-950 text-red-400 border border-red-600 px-2 py-0.5 rounded text-[10px] font-bold">DISEASE: CAN'T HEAL</span>`;
-        if (op.poison) badges += `<span class="bg-lime-950 text-lime-400 border border-lime-600 px-2 py-0.5 rounded text-[10px] font-bold">POISON: HEALS DMG</span>`;
+        if (op.poison) badges += `<span class="bg-lime-950 text-lime-400 border border-lime-600 px-2 py-0.5 rounded text-[10px] font-bold">POISON: TAKE DMG</span>`;
         if (op.markActive) badges += `<span class="bg-amber-950 text-amber-400 border border-amber-600 px-2 py-0.5 rounded text-[10px] font-bold">MARK (${op.markElement})</span>`;
+
+        if (op.affCold && op.affCold !== 'None') badges += `<span class="bg-blue-950 text-blue-300 border border-blue-700 px-2 py-0.5 rounded text-[10px]">Cold: ${op.affCold}</span>`;
+        if (op.affFire && op.affFire !== 'None') badges += `<span class="bg-orange-950 text-orange-300 border border-orange-700 px-2 py-0.5 rounded text-[10px]">Fire: ${op.affFire}</span>`;
+        if (op.affWind && op.affWind !== 'None') badges += `<span class="bg-teal-950 text-teal-300 border border-teal-700 px-2 py-0.5 rounded text-[10px]">Wind: ${op.affWind}</span>`;
+        if (op.affLightning && op.affLightning !== 'None') badges += `<span class="bg-yellow-950 text-yellow-300 border border-yellow-700 px-2 py-0.5 rounded text-[10px]">Light: ${op.affLightning}</span>`;
+        if (op.affEarth && op.affEarth !== 'None') badges += `<span class="bg-stone-900 text-stone-300 border border-stone-700 px-2 py-0.5 rounded text-[10px]">Earth: ${op.affEarth}</span>`;
 
         grid.innerHTML += `
           <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl space-y-3 shadow">
             <div class="flex justify-between items-start">
               <div>
                 <div class="text-sm font-black text-white">${op.name}</div>
-                <div class="text-[10px] text-slate-400 font-mono">Rank #${idx+1} in Initiative</div>
+                <div class="text-[10px] text-slate-400 font-mono">Initiative Rank #${idx+1}</div>
               </div>
               <div class="text-right">
                 <div class="text-xs font-mono font-bold text-emerald-400">HP: ${op.hp} / ${op.maxHP}</div>
@@ -459,7 +466,6 @@
         `;
       });
 
-      // Hunt Insurance Stage 2 calculation
       const N = parseInt(document.getElementById('insurN').value) || 15;
       const monsterWIS = parseInt(document.getElementById('insurMonsterWIS').value) || 12;
       const rescuePower = N * 5;
@@ -479,7 +485,6 @@
     document.getElementById('insurN').addEventListener('input', () => initFirebaseListeners());
     document.getElementById('insurMonsterWIS').addEventListener('input', () => initFirebaseListeners());
 
-    // Initial run
     calculateStats();
     initFirebaseListeners();
   </script>
