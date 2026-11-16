@@ -1,0 +1,2546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bright Fracture // Operative & GM Live Command</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #09090b;
+            color: #f4f4f5;
+            background-image: radial-gradient(circle at 50% 0%, #1c1917 0%, #09090b 75%);
+        }
+        .cinzel { font-family: 'Cinzel', serif; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        .panel-bg {
+            background: rgba(24, 24, 27, 0.94);
+            border: 1px solid #3f3f46;
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+        }
+        .tarnished-border { border-color: #78716c; }
+        .input-dark {
+            background: #121214;
+            border: 1px solid #3f3f46;
+            color: #f8fafc;
+            transition: all 0.15s ease;
+        }
+        .input-dark:focus {
+            border-color: #38bdf8;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.25);
+        }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #09090b; }
+        ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #52525b; }
+
+        @keyframes pulse-red {
+            0%, 100% { border-color: rgba(239, 68, 68, 0.95); box-shadow: 0 0 14px rgba(239, 68, 68, 0.4); }
+            50% { border-color: rgba(239, 68, 68, 0.3); box-shadow: 0 0 4px rgba(239, 68, 68, 0.1); }
+        }
+        @keyframes pulse-lime {
+            0%, 100% { border-color: rgba(132, 204, 22, 0.95); box-shadow: 0 0 14px rgba(132, 204, 22, 0.4); }
+            50% { border-color: rgba(132, 204, 22, 0.3); box-shadow: 0 0 4px rgba(132, 204, 22, 0.1); }
+        }
+        .alert-pulse-red { animation: pulse-red 2s infinite; }
+        .alert-pulse-lime { animation: pulse-lime 2s infinite; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-sky-500 selection:text-white">
+
+    <!-- Toast Notification Banner -->
+    <div id="toast-banner" class="fixed bottom-5 right-5 z-50 hidden bg-zinc-900 border-2 border-sky-500 text-sky-200 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 text-xs font-bold transition-all">
+        <i class="fa-solid fa-circle-info text-sky-400 text-base"></i>
+        <span id="toast-msg">Operative data synchronized.</span>
+    </div>
+
+    <!-- Top Navigation & Mode Switcher Header -->
+    <header class="panel-bg border-b border-zinc-800 sticky top-0 z-40 px-4 py-3 shadow-2xl">
+        <div class="max-w-7xl mx-auto flex flex-col gap-3">
+            <!-- Top Row: Brand, View Switcher, Room Code & Sync Controls -->
+            <div class="flex flex-wrap justify-between items-center gap-3">
+                <!-- Branding -->
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-amber-950/80 border border-amber-500/60 flex items-center justify-center text-amber-400 font-bold shadow-[0_0_15px_rgba(245,158,11,0.25)]">
+                        <i class="fa-solid fa-burst text-lg"></i>
+                    </div>
+                    <div>
+                        <h1 class="cinzel text-lg sm:text-xl font-black tracking-wider text-amber-400 uppercase">Bright Fracture</h1>
+                        <div class="flex items-center gap-2 text-[11px] text-zinc-400">
+                            <span>Kingdoms of Ash &amp; Bone</span>
+                            <span>•</span>
+                            <span id="sync-status-indicator" class="text-amber-400 font-semibold flex items-center gap-1">
+                                <i class="fa-solid fa-circle-notch fa-spin text-[10px]"></i> Connecting...
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mode Switcher: Operative Sheet vs. GM Live Dashboard -->
+                <div class="flex items-center bg-zinc-950 p-1 rounded-xl border border-zinc-800">
+                    <button id="mode-btn-player" onclick="switchTopMode('player')" class="px-3.5 py-1.5 rounded-lg text-xs font-extrabold uppercase tracking-wider bg-sky-600 text-white shadow transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-user-shield"></i> Operative Sheet
+                    </button>
+                    <button id="mode-btn-gm" onclick="switchTopMode('gm')" class="px-3.5 py-1.5 rounded-lg text-xs font-extrabold uppercase tracking-wider text-zinc-400 hover:text-amber-300 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-chess-king"></i> GM Live Dashboard
+                        <span id="gm-party-count" class="bg-zinc-800 text-amber-300 px-1.5 py-0.2 rounded-full text-[10px] mono">0</span>
+                    </button>
+                </div>
+
+                <!-- Room Code & Action Controls -->
+                <div class="flex flex-wrap items-center gap-2">
+                    <div class="flex items-center bg-zinc-900 border border-zinc-700 rounded-lg px-2.5 py-1">
+                        <span class="text-[10px] text-zinc-400 uppercase font-bold mr-2"><i class="fa-solid fa-tower-broadcast text-sky-400 mr-1"></i>Room:</span>
+                        <input type="text" id="room-code-input" value="BRIGHT-FRACTURE-MAIN" onchange="changeRoomCode()" class="bg-transparent text-xs font-extrabold text-sky-300 w-36 focus:outline-none mono uppercase">
+                    </div>
+
+                    <button onclick="forceCloudSync(true)" class="bg-sky-600 hover:bg-sky-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition shadow-md flex items-center gap-1.5" title="Push current sheet state to Live GM Dashboard">
+                        <i class="fa-solid fa-cloud-arrow-up"></i> Sync Now
+                    </button>
+                    <button onclick="toggleClipboardModal(true)" class="bg-zinc-800 hover:bg-zinc-700 text-amber-300 px-3 py-1.5 rounded-lg text-xs font-bold transition border border-zinc-700 flex items-center gap-1.5" title="Copy/Paste JSON for Discord">
+                        <i class="fa-brands fa-discord"></i> JSON Share
+                    </button>
+                    <button onclick="toggleResetModal(true)" class="bg-zinc-900 hover:bg-red-950/60 text-red-400 px-2.5 py-1.5 rounded-lg text-xs font-bold transition border border-zinc-800 hover:border-red-700" title="New / Reset Operative">
+                        <i class="fa-solid fa-file-circle-plus"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Operative Identity Strip (Visible in Player Mode) -->
+            <div id="operative-identity-strip" class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2 pt-2 border-t border-zinc-800/80">
+                <div class="bg-zinc-900/90 px-2.5 py-1.5 rounded-lg border border-zinc-800">
+                    <label class="text-[9px] text-zinc-400 uppercase font-semibold block">Operative Name</label>
+                    <input type="text" id="op-name" value="Vex 'Bore-Blade' Thorne" oninput="scheduleSync()" class="bg-transparent text-xs font-bold text-sky-300 w-full focus:outline-none">
+                </div>
+                <div class="bg-zinc-900/90 px-2.5 py-1.5 rounded-lg border border-zinc-800">
+                    <label class="text-[9px] text-zinc-400 uppercase font-semibold block">Player Name</label>
+                    <input type="text" id="op-player" value="Operative 01" oninput="scheduleSync()" class="bg-transparent text-xs font-bold text-zinc-200 w-full focus:outline-none">
+                </div>
+                <div class="bg-zinc-900/90 px-2.5 py-1.5 rounded-lg border border-zinc-800">
+                    <label class="text-[9px] text-zinc-400 uppercase font-semibold block">Campaign</label>
+                    <input type="text" id="op-campaign" value="Smokelands" oninput="scheduleSync()" class="bg-transparent text-xs font-bold text-zinc-300 w-full focus:outline-none">
+                </div>
+                <div class="bg-zinc-900/90 px-2.5 py-1.5 rounded-lg border border-zinc-800">
+                    <label class="text-[9px] text-zinc-400 uppercase font-semibold block">Combat Class</label>
+                    <select id="op-class" onchange="onClassChange()" class="bg-zinc-900 text-xs font-bold text-amber-300 w-full focus:outline-none">
+                        <option value="Shield Bearer">Shield Bearer</option>
+                        <option value="Juggernaut">Juggernaut</option>
+                        <option value="The Kaiha">The Kaiha (Ashen Edge)</option>
+                        <option value="Syndicate Shade" selected>Syndicate Shade</option>
+                        <option value="Mystic Archer">Mystic Archer</option>
+                        <option value="Gunner">Gunner</option>
+                        <option value="Arcane Weaver">Arcane Weaver</option>
+                        <option value="Talon Sage">Talon Sage</option>
+                        <option value="Warden Cleric">Warden Cleric</option>
+                        <option value="Knight Warden">Knight Warden</option>
+                        <option value="Temple Cleric">Temple Cleric</option>
+                        <option value="Skeleton Lich">Skeleton Lich</option>
+                        <option value="Divine Warden">Divine Warden</option>
+                    </select>
+                </div>
+                <div class="bg-zinc-900/90 px-2.5 py-1.5 rounded-lg border border-zinc-800">
+                    <label class="text-[9px] text-zinc-400 uppercase font-semibold block">Craft Subclass</label>
+                    <select id="op-subclass" onchange="onSubclassChange()" class="bg-zinc-900 text-xs font-bold text-emerald-300 w-full focus:outline-none">
+                        <option value="Scrapper">Scrapper</option>
+                        <option value="Core Crafter" selected>Core Crafter</option>
+                        <option value="Harvester">Harvester (Bleed Immune)</option>
+                        <option value="Cooking Hauler">Cooking Hauler</option>
+                        <option value="Alchemist">Alchemist</option>
+                        <option value="None">None</option>
+                    </select>
+                </div>
+                <div class="bg-zinc-900/90 px-2.5 py-1.5 rounded-lg border border-zinc-800">
+                    <label class="text-[9px] text-zinc-400 uppercase font-semibold block">Default Race Trinket</label>
+                    <select id="op-race" onchange="calculateStats()" class="bg-zinc-900 text-xs font-bold text-purple-300 w-full focus:outline-none">
+                        <option value="lagomorph" selected>Lagomorph (+1 AP)</option>
+                        <option value="human">Pureborn Human (+1d6 Trade)</option>
+                        <option value="saurian">Saurian (+3 Armor DR)</option>
+                        <option value="avian">Avian (Flight)</option>
+                        <option value="arthropod">Arthropod (+6 BD)</option>
+                    </select>
+                </div>
+                <div class="bg-zinc-900/90 px-2.5 py-1.5 rounded-lg border border-zinc-800 flex items-center justify-between">
+                    <div>
+                        <label class="text-[9px] text-zinc-400 uppercase font-semibold block">Level (0-20)</label>
+                        <input type="number" id="op-level" value="5" min="0" max="20" oninput="calculateStats()" class="bg-transparent text-sm font-extrabold text-amber-400 w-12 focus:outline-none mono">
+                    </div>
+                    <button onclick="levelUpOperative()" class="bg-amber-600/30 hover:bg-amber-600/50 text-amber-300 border border-amber-500/40 px-1.5 py-1 rounded text-[9px] font-bold transition" title="Advance 1 Level & Grant +4 Attribute Points">
+                        +1 Lvl
+                    </button>
+                </div>
+                <div class="bg-zinc-900/90 px-2.5 py-1.5 rounded-lg border border-zinc-800 flex items-center justify-between">
+                    <div>
+                        <label class="text-[9px] text-zinc-400 uppercase font-semibold block">Height (ft)</label>
+                        <input type="number" id="op-height" value="5" min="1" max="50" oninput="calculateStats()" class="bg-transparent text-sm font-extrabold text-sky-400 w-12 focus:outline-none mono">
+                    </div>
+                    <span class="text-[9px] text-zinc-500 font-semibold">Base 5'</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ===================================================================== -->
+    <!-- VIEW 1: OPERATIVE SHEET (PLAYER VIEW)                                 -->
+    <!-- ===================================================================== -->
+    <main id="view-player-sheet" class="max-w-7xl mx-auto w-full p-3 sm:p-5 grid grid-cols-1 lg:grid-cols-12 gap-5 my-1">
+
+        <!-- COLUMN 1: CORE ATTRIBUTES & DERIVED METRICS (4 Cols) -->
+        <section class="lg:col-span-4 panel-bg rounded-xl p-4 flex flex-col gap-3">
+            <div class="flex justify-between items-center border-b border-zinc-800 pb-2">
+                <h2 class="cinzel text-sm font-bold tracking-wider text-sky-400 uppercase flex items-center gap-2">
+                    <i class="fa-solid fa-dna text-sky-500"></i> Core Attributes
+                </h2>
+                <span id="race-perk-badge" class="text-[10px] bg-purple-950/60 border border-purple-700/50 text-purple-300 px-2 py-0.5 rounded font-semibold">Lagomorph: +1 AP</span>
+            </div>
+
+            <!-- Unspent Attribute Points Tracker & Budget Audit -->
+            <div class="bg-amber-950/30 border border-amber-700/60 p-2.5 rounded-xl flex flex-col gap-1.5">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <span class="text-xs font-bold text-amber-300 uppercase block tracking-wider">Unspent Attribute Points</span>
+                        <span id="stat-budget-audit" class="text-[10px] text-zinc-400 mono">Budget: 29 / 29 pts</span>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <button onclick="adjustUnspentPoints(-1)" class="w-6 h-6 bg-zinc-900 hover:bg-zinc-800 text-amber-300 border border-amber-700/50 rounded font-bold transition flex items-center justify-center text-xs">-</button>
+                        <span id="unspent-points-display" class="text-base font-extrabold text-amber-300 w-7 text-center mono">0</span>
+                        <button onclick="adjustUnspentPoints(1)" class="w-6 h-6 bg-zinc-900 hover:bg-zinc-800 text-amber-300 border border-amber-700/50 rounded font-bold transition flex items-center justify-center text-xs">+</button>
+                        <button onclick="syncBudgetToLevel()" class="ml-1 px-2 py-1 bg-amber-600/30 hover:bg-amber-600/50 text-amber-200 border border-amber-500/40 rounded text-[9px] font-bold transition" title="Recalculate Unspent Points from Level (5 Base + 4 Origin + Level*4)">Auto</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Five Core Stats Cards (STR, DEX, CON, WIS, INT) -->
+            <div class="flex flex-col gap-2">
+                <!-- STR -->
+                <div class="bg-zinc-900/90 p-2.5 rounded-xl border border-zinc-800 flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2">
+                        <div class="w-11 h-11 rounded-lg bg-zinc-950 border border-red-500/50 flex flex-col items-center justify-center">
+                            <span class="text-[9px] font-bold text-red-400 uppercase">STR</span>
+                            <span id="str-val-badge" class="text-sm font-extrabold text-white mono">6</span>
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <button onclick="stepStat('attr-str', 1)" class="w-6 h-5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded text-[10px] font-bold flex items-center justify-center">+</button>
+                            <button onclick="stepStat('attr-str', -1)" class="w-6 h-5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded text-[10px] font-bold flex items-center justify-center">-</button>
+                        </div>
+                        <input type="number" id="attr-str" value="6" min="1" max="20" oninput="calculateStats()" class="hidden">
+                    </div>
+                    <div class="text-right text-[11px] text-zinc-400 space-y-0.5 flex-1">
+                        <div class="flex justify-between"><span>Brute Dmg / Mass HP:</span> <strong id="derived-strmelee" class="text-sky-300 mono">+3 / +3 HP</strong></div>
+                        <div class="flex justify-between"><span>Regen (HR) / BD Bonus:</span> <strong id="derived-strregen" class="text-emerald-300 mono">1 HP / +1 BD</strong></div>
+                        <div class="flex justify-between"><span>Carry Capacity:</span> <strong id="derived-weight" class="text-amber-300 mono">17 lbs</strong></div>
+                    </div>
+                </div>
+
+                <!-- DEX -->
+                <div class="bg-zinc-900/90 p-2.5 rounded-xl border border-zinc-800 flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2">
+                        <div class="w-11 h-11 rounded-lg bg-zinc-950 border border-emerald-500/50 flex flex-col items-center justify-center">
+                            <span class="text-[9px] font-bold text-emerald-400 uppercase">DEX</span>
+                            <span id="dex-val-badge" class="text-sm font-extrabold text-white mono">8</span>
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <button onclick="stepStat('attr-dex', 1)" class="w-6 h-5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded text-[10px] font-bold flex items-center justify-center">+</button>
+                            <button onclick="stepStat('attr-dex', -1)" class="w-6 h-5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded text-[10px] font-bold flex items-center justify-center">-</button>
+                        </div>
+                        <input type="number" id="attr-dex" value="8" min="1" max="20" oninput="calculateStats()" class="hidden">
+                    </div>
+                    <div class="text-right text-[11px] text-zinc-400 space-y-0.5 flex-1">
+                        <div class="flex justify-between"><span>Combat Move:</span> <strong id="derived-cmove" class="text-sky-300 mono">9 ft (1 sq)</strong></div>
+                        <div class="flex justify-between"><span>Non-Combat (Init):</span> <strong id="derived-ncmove" class="text-emerald-300 mono">21 ft</strong></div>
+                        <div class="flex justify-between"><span>Finesse / Reflex / O₂:</span> <strong id="derived-dexfinesse" class="text-amber-300 mono">+4 / 1 / 1t</strong></div>
+                    </div>
+                </div>
+
+                <!-- CON -->
+                <div class="bg-zinc-900/90 p-2.5 rounded-xl border border-zinc-800 flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2">
+                        <div class="w-11 h-11 rounded-lg bg-zinc-950 border border-amber-500/50 flex flex-col items-center justify-center">
+                            <span class="text-[9px] font-bold text-amber-400 uppercase">CON</span>
+                            <span id="con-val-badge" class="text-sm font-extrabold text-white mono">5</span>
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <button onclick="stepStat('attr-con', 1)" class="w-6 h-5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded text-[10px] font-bold flex items-center justify-center">+</button>
+                            <button onclick="stepStat('attr-con', -1)" class="w-6 h-5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded text-[10px] font-bold flex items-center justify-center">-</button>
+                        </div>
+                        <input type="number" id="attr-con" value="5" min="1" max="20" oninput="calculateStats()" class="hidden">
+                    </div>
+                    <div class="text-right text-[11px] text-zinc-400 space-y-0.5 flex-1">
+                        <div class="flex justify-between"><span>Base Flesh HP:</span> <strong id="derived-fleshhp" class="text-sky-300 mono">15 HP</strong></div>
+                        <div class="flex justify-between"><span>Bone Density (Cap 19):</span> <strong id="derived-bonedensity" class="text-emerald-300 mono">3 BD</strong></div>
+                        <div class="flex justify-between"><span>Bio Resilience DR:</span> <strong id="derived-dres" class="text-amber-300 mono">+1 DR</strong></div>
+                    </div>
+                </div>
+
+                <!-- WIS -->
+                <div class="bg-zinc-900/90 p-2.5 rounded-xl border border-zinc-800 flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2">
+                        <div class="w-11 h-11 rounded-lg bg-zinc-950 border border-purple-500/50 flex flex-col items-center justify-center">
+                            <span class="text-[9px] font-bold text-purple-400 uppercase">WIS</span>
+                            <span id="wis-val-badge" class="text-sm font-extrabold text-white mono">5</span>
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <button onclick="stepStat('attr-wis', 1)" class="w-6 h-5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded text-[10px] font-bold flex items-center justify-center">+</button>
+                            <button onclick="stepStat('attr-wis', -1)" class="w-6 h-5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded text-[10px] font-bold flex items-center justify-center">-</button>
+                        </div>
+                        <input type="number" id="attr-wis" value="5" min="1" max="20" oninput="calculateStats()" class="hidden">
+                    </div>
+                    <div class="text-right text-[11px] text-zinc-400 space-y-0.5 flex-1">
+                        <div class="flex justify-between"><span>Max AP Reservoir:</span> <strong id="derived-ap" class="text-sky-300 mono">2 AP</strong></div>
+                        <div class="flex justify-between"><span>Passive Perception:</span> <strong id="derived-perception" class="text-emerald-300 mono">5</strong></div>
+                        <div class="flex justify-between"><span>Blind Sense Acc:</span> <strong id="derived-blindacc" class="text-amber-300 mono">+1</strong></div>
+                    </div>
+                </div>
+
+                <!-- INT -->
+                <div class="bg-zinc-900/90 p-2.5 rounded-xl border border-zinc-800 flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2">
+                        <div class="w-11 h-11 rounded-lg bg-zinc-950 border border-sky-500/50 flex flex-col items-center justify-center">
+                            <span class="text-[9px] font-bold text-sky-400 uppercase">INT</span>
+                            <span id="int-val-badge" class="text-sm font-extrabold text-white mono">5</span>
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <button onclick="stepStat('attr-int', 1)" class="w-6 h-5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded text-[10px] font-bold flex items-center justify-center">+</button>
+                            <button onclick="stepStat('attr-int', -1)" class="w-6 h-5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded text-[10px] font-bold flex items-center justify-center">-</button>
+                        </div>
+                        <input type="number" id="attr-int" value="5" min="1" max="20" oninput="calculateStats()" class="hidden">
+                    </div>
+                    <div class="text-right text-[11px] text-zinc-400 space-y-0.5 flex-1">
+                        <div class="flex justify-between"><span>Mana Capacity:</span> <strong id="derived-mana" class="text-sky-300 mono">10 Mana</strong></div>
+                        <div class="flex justify-between"><span>Spell Load / M.Ref:</span> <strong id="derived-mreflex" class="text-emerald-300 mono">5 Wt / 1</strong></div>
+                        <div class="flex justify-between"><span>Surge / Meditate:</span> <strong id="derived-surge" class="text-amber-300 mono">+5 / +1</strong></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Carry Capacity Toggles: Shield Bearer & Cooking Hauler -->
+            <div class="flex flex-col gap-1.5">
+                <button id="shield-bearer-btn" onclick="toggleShieldBearerCarry()" class="w-full py-2 px-3 rounded-xl border border-zinc-700 bg-zinc-900 hover:bg-zinc-800 flex items-center justify-between transition">
+                    <div class="flex items-center gap-2 text-left">
+                        <div id="sb-icon-box" class="w-7 h-7 rounded-lg bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-400 text-xs">
+                            <i class="fa-solid fa-shield-halved"></i>
+                        </div>
+                        <div>
+                            <span class="text-[11px] font-bold text-zinc-200 block">Shield Bearer: Conditioned Frame</span>
+                            <span class="text-[9px] text-zinc-400">Adds <strong class="text-sky-300">max(1, Level × 2) lbs</strong> (<span id="sb-bonus-preview">+10 lbs</span>) Carry Cap</span>
+                        </div>
+                    </div>
+                    <span id="sb-status-pill" class="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded bg-zinc-800 text-zinc-400 border border-zinc-700">OFF</span>
+                </button>
+
+                <button id="hauler-mule-btn" onclick="toggleHaulerCarry()" class="w-full py-2 px-3 rounded-xl border border-zinc-700 bg-zinc-900 hover:bg-zinc-800 flex items-center justify-between transition">
+                    <div class="flex items-center gap-2 text-left">
+                        <div id="hauler-icon-box" class="w-7 h-7 rounded-lg bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-400 text-xs">
+                            <i class="fa-solid fa-boxes-packing"></i>
+                        </div>
+                        <div>
+                            <span class="text-[11px] font-bold text-zinc-200 block">Cooking Hauler: Pack Mule Matrix</span>
+                            <span class="text-[9px] text-zinc-400">Adds <strong class="text-emerald-300">STR × 2 lbs</strong> (<span id="hauler-bonus-preview">+12 lbs</span>) + +2 Innate DR</span>
+                        </div>
+                    </div>
+                    <span id="hauler-status-pill" class="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded bg-zinc-800 text-zinc-400 border border-zinc-700">OFF</span>
+                </button>
+            </div>
+
+            <!-- Derived Combat Threshold Summary -->
+            <div class="bg-zinc-950 p-2.5 rounded-xl border border-zinc-800/90 text-xs grid grid-cols-2 gap-2 text-zinc-300">
+                <div class="bg-zinc-900/70 p-2 rounded-lg border border-zinc-800/60">
+                    <span class="text-[9px] text-zinc-400 uppercase block">Tangible Hit (Evasion)</span>
+                    <strong id="derived-tangible" class="text-sm text-emerald-400 mono">4</strong>
+                </div>
+                <div class="bg-zinc-900/70 p-2 rounded-lg border border-zinc-800/60">
+                    <span class="text-[9px] text-zinc-400 uppercase block">Attacker's d20 Mod</span>
+                    <strong id="derived-atkroll" class="text-sm text-sky-400 mono">1d20 + 4</strong>
+                </div>
+                <div class="bg-zinc-900/70 p-2 rounded-lg border border-zinc-800/60">
+                    <span class="text-[9px] text-zinc-400 uppercase block">Permadeath Limit</span>
+                    <strong id="derived-permadeath" class="text-sm text-red-400 mono">-8 HP</strong>
+                </div>
+                <div class="bg-zinc-900/70 p-2 rounded-lg border border-zinc-800/60">
+                    <span class="text-[9px] text-zinc-400 uppercase block">Pathogen Threshold</span>
+                    <strong id="derived-pathogen" class="text-sm text-amber-400 mono">5 vs Disease</strong>
+                </div>
+            </div>
+        </section>
+
+        <!-- COLUMN 2: VITALS, MANA CAPACITY, AFFLICTIONS & MARK TAB (4 Cols) -->
+        <section class="lg:col-span-4 panel-bg rounded-xl p-4 flex flex-col gap-3">
+            <!-- Sub-Tab Switcher: [Vitals & Status Matrix] vs [Mark] -->
+            <div class="flex justify-between items-center border-b border-zinc-800 pb-2">
+                <div class="flex items-center gap-1.5">
+                    <button id="tab-btn-vitals" onclick="switchCenterTab('vitals')" class="px-3 py-1.5 rounded-lg text-xs font-extrabold uppercase tracking-wider bg-emerald-950/80 text-emerald-300 border border-emerald-600/50 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-heart-pulse"></i> Vitals &amp; Status Matrix
+                    </button>
+                    <button id="tab-btn-mark" onclick="switchCenterTab('mark')" class="px-3 py-1.5 rounded-lg text-xs font-extrabold uppercase tracking-wider bg-zinc-900 text-zinc-400 border border-zinc-800 hover:text-purple-300 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-wand-sparkles"></i> Mark
+                        <span id="mark-active-dot" class="hidden w-2 h-2 rounded-full bg-purple-400 animate-ping"></span>
+                    </button>
+                </div>
+                <span id="active-mark-header-pill" class="hidden text-[10px] bg-purple-950/80 border border-purple-500/60 text-purple-200 px-2 py-0.5 rounded font-bold mono">MARKED</span>
+            </div>
+
+            <!-- SUB-TAB 1: VITALS & STATUS MATRIX -->
+            <div id="center-tab-vitals" class="flex flex-col gap-2.5">
+                
+                <!-- High-Visibility Disease & Poison Alert Banners -->
+                <div id="disease-alert-banner" class="hidden bg-red-950/90 border-2 border-red-500 rounded-xl p-2.5 text-xs text-red-100 alert-pulse-red">
+                    <div class="flex items-center justify-between font-black text-red-300 uppercase tracking-wide">
+                        <span><i class="fa-solid fa-biohazard text-sm mr-1"></i> DISEASE ACTIVE</span>
+                        <span class="bg-red-600 text-white px-2 py-0.5 rounded text-[10px] font-black">CAN'T HEAL</span>
+                    </div>
+                    <p class="text-[11px] text-red-200 mt-1">All forms of healing &amp; regeneration are blocked. Tangible Hit suffers <strong>-2 penalty</strong>.</p>
+                </div>
+
+                <div id="poison-alert-banner" class="hidden bg-lime-950/90 border-2 border-lime-500 rounded-xl p-2.5 text-xs text-lime-100 alert-pulse-lime">
+                    <div class="flex items-center justify-between font-black text-lime-300 uppercase tracking-wide">
+                        <span><i class="fa-solid fa-skull-crossbones text-sm mr-1"></i> POISON ACTIVE</span>
+                        <span class="bg-lime-500 text-zinc-950 px-1.5 py-0.5 rounded text-[9px] font-black">TAKE DAMAGE FROM ALL HEALING</span>
+                    </div>
+                    <div class="flex justify-between items-center text-[11px] text-lime-200 mt-1">
+                        <span>Any heal detonates stacks as damage!</span>
+                        <strong id="poison-lethal-badge" class="mono text-lime-300">Stacks: 0</strong>
+                    </div>
+                </div>
+
+                <!-- 1. Flesh HP Pool & Coma Tracker -->
+                <div class="bg-zinc-900/90 p-3 rounded-xl border border-zinc-800 flex flex-col gap-2">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <span class="text-xs font-bold text-red-400 uppercase tracking-wider block"><i class="fa-solid fa-heart text-red-500 mr-1"></i>Flesh HP Pool</span>
+                            <span class="text-[10px] text-zinc-400">Base (<span id="hp-base-sub">15</span>) + STR (<span id="hp-mass-sub">3</span>) + Flat (<input type="number" id="hp-bonus-input" value="0" oninput="calculateStats()" class="w-9 bg-zinc-950 text-red-300 text-center rounded border border-zinc-700 text-[10px] mono">) <span id="hp-core-mult-badge" class="hidden text-amber-300 font-extrabold mono ml-0.5">×1</span></span>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <button onclick="modifyHP(-1)" class="w-7 h-7 rounded bg-zinc-800 hover:bg-red-950 text-red-300 font-bold text-xs border border-zinc-700">-</button>
+                            <input type="number" id="current-hp" value="18" oninput="updateVitalsBars(); scheduleSync();" class="input-dark w-14 text-center font-extrabold text-red-400 rounded p-1 text-sm mono">
+                            <span class="text-zinc-500 font-bold">/</span>
+                            <span id="max-hp-display" class="text-sm font-extrabold text-zinc-200 mono">18</span>
+                            <button onclick="modifyHP(1)" class="w-7 h-7 rounded bg-zinc-800 hover:bg-emerald-950 text-emerald-300 font-bold text-xs border border-zinc-700">+</button>
+                        </div>
+                    </div>
+                    <div class="w-full bg-zinc-950 h-2.5 rounded-full overflow-hidden border border-zinc-800">
+                        <div id="hp-bar" class="bg-gradient-to-r from-red-700 to-red-500 h-full transition-all duration-300" style="width: 100%;"></div>
+                    </div>
+                    <!-- Coma Countdown & Regen -->
+                    <div class="flex flex-wrap justify-between items-center gap-1 pt-0.5 text-[10px]">
+                        <div class="flex items-center gap-1">
+                            <span class="text-zinc-400 font-semibold">Coma:</span>
+                            <select id="coma-stage" onchange="scheduleSync()" class="bg-zinc-950 text-red-300 border border-zinc-800 rounded px-1.5 py-0.5 font-bold mono text-[10px]">
+                                <option value="Conscious">Conscious</option>
+                                <option value="72 HR">Coma: 72 HR</option>
+                                <option value="48 HR">Coma: 48 HR (Heal Today!)</option>
+                                <option value="24 HR">Coma: 24 HR (Critical)</option>
+                                <option value="DEAD">PERMADEATH</option>
+                            </select>
+                        </div>
+                        <button onclick="triggerRegenTick()" class="bg-emerald-950/60 hover:bg-emerald-900/70 text-emerald-300 border border-emerald-700/50 px-2 py-0.5 rounded font-bold transition">
+                            <i class="fa-solid fa-plus-circle"></i> Regen (<span id="regen-btn-val">+1</span>)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 2. Mana Capacity Tracker -->
+                <div class="bg-zinc-900/90 p-3 rounded-xl border border-zinc-800 flex flex-col gap-2">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <span class="text-xs font-bold text-sky-400 uppercase tracking-wider block"><i class="fa-solid fa-droplet text-sky-500 mr-1"></i>Mana Capacity</span>
+                            <span class="text-[10px] text-zinc-400">INT×2 (<span id="mana-base-sub">10</span>) + Flat (<input type="number" id="mana-bonus-input" value="0" oninput="calculateStats()" class="w-10 bg-zinc-950 text-sky-300 text-center rounded border border-zinc-700 text-[10px] mono">) <span id="mana-core-mult-badge" class="hidden text-amber-300 font-extrabold mono ml-0.5">×1</span></span>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <button onclick="modifyMana(-1)" class="w-7 h-7 rounded bg-zinc-800 hover:bg-zinc-700 text-sky-300 font-bold text-xs border border-zinc-700">-</button>
+                            <input type="number" id="current-mana" value="10" oninput="updateVitalsBars(); scheduleSync();" class="input-dark w-14 text-center font-extrabold text-sky-400 rounded p-1 text-sm mono">
+                            <span class="text-zinc-500 font-bold">/</span>
+                            <span id="max-mana-display" class="text-sm font-extrabold text-zinc-200 mono">10</span>
+                            <button onclick="modifyMana(1)" class="w-7 h-7 rounded bg-zinc-800 hover:bg-zinc-700 text-sky-300 font-bold text-xs border border-zinc-700">+</button>
+                        </div>
+                    </div>
+                    <div class="w-full bg-zinc-950 h-2.5 rounded-full overflow-hidden border border-zinc-800">
+                        <div id="mana-bar" class="bg-gradient-to-r from-sky-700 to-cyan-400 h-full transition-all duration-300" style="width: 100%;"></div>
+                    </div>
+                    <div class="flex justify-between items-center gap-2 pt-0.5">
+                        <button onclick="triggerAPSurge()" class="flex-1 bg-sky-950/60 hover:bg-sky-900/70 text-sky-300 border border-sky-700/50 py-1 px-2 rounded text-[10px] font-bold transition">
+                            <i class="fa-solid fa-bolt"></i> AP Surge (-1 AP ➔ +<span id="surge-btn-val">5</span> Mana)
+                        </button>
+                        <button onclick="triggerMeditation()" class="flex-1 bg-indigo-950/60 hover:bg-indigo-900/70 text-indigo-300 border border-indigo-700/50 py-1 px-2 rounded text-[10px] font-bold transition">
+                            <i class="fa-solid fa-om"></i> Meditate (+<span id="med-btn-val">1</span> / 4x Dmg)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 3. AP Stamina & Core Shielding Row -->
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="bg-zinc-900/90 p-2.5 rounded-xl border border-zinc-800 flex flex-col justify-between">
+                        <div class="flex justify-between items-center">
+                            <span class="text-[11px] font-bold text-purple-400 uppercase">AP Charges</span>
+                            <span class="text-[10px] text-zinc-400">Max: <strong id="max-ap-display" class="text-purple-300 mono">2</strong></span>
+                        </div>
+                        <div class="flex items-center justify-between my-1">
+                            <button onclick="modifyAP(-1)" class="w-7 h-7 rounded bg-zinc-800 hover:bg-zinc-700 text-purple-300 font-bold text-xs border border-zinc-700">-</button>
+                            <input type="number" id="current-ap" value="2" oninput="scheduleSync()" class="input-dark w-12 text-center font-extrabold text-purple-300 rounded p-1 text-sm mono">
+                            <button onclick="modifyAP(1)" class="w-7 h-7 rounded bg-zinc-800 hover:bg-zinc-700 text-purple-300 font-bold text-xs border border-zinc-700">+</button>
+                        </div>
+                        <span class="text-[9px] text-zinc-500 text-center block">0 AP = Exhausted</span>
+                    </div>
+
+                    <div class="bg-zinc-900/90 p-2.5 rounded-xl border border-zinc-800 flex flex-col justify-between">
+                        <div class="flex justify-between items-center">
+                            <span class="text-[11px] font-bold text-amber-400 uppercase">Core Shield</span>
+                            <div class="flex items-center gap-1">
+                                <input type="number" id="current-corehp" value="10" oninput="updateVitalsBars(); scheduleSync();" class="input-dark w-10 text-center font-bold text-amber-300 rounded p-0.5 text-xs mono">
+                                <span class="text-zinc-500 text-xs">/</span>
+                                <input type="number" id="max-corehp" value="10" oninput="updateVitalsBars(); scheduleSync();" class="input-dark w-10 text-center font-bold text-zinc-300 rounded p-0.5 text-xs mono">
+                            </div>
+                        </div>
+                        <div class="w-full bg-zinc-950 h-2 rounded-full overflow-hidden border border-zinc-800 my-1">
+                            <div id="core-bar" class="bg-amber-500 h-full transition-all duration-300" style="width: 100%;"></div>
+                        </div>
+                        <span class="text-[9px] text-zinc-500 text-center block">Monster Battery Buffer</span>
+                    </div>
+                </div>
+
+                <!-- 4. Active Afflictions Matrix -->
+                <div class="bg-zinc-950 p-3 rounded-xl border border-zinc-800 flex flex-col gap-2">
+                    <div class="flex justify-between items-center border-b border-zinc-800 pb-1">
+                        <span class="text-xs font-bold text-amber-400 uppercase tracking-wider"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Active Afflictions (Multi-Elemental)</span>
+                        <button onclick="clearAllAfflictions()" class="text-[10px] text-zinc-400 hover:text-zinc-200 underline">Clear All</button>
+                    </div>
+
+                    <!-- Independent Multi-Elemental Tier Matrix (Cold, Fire, Wind, Lightning, Earth) -->
+                    <div class="bg-zinc-900/90 p-2.5 rounded-lg border border-zinc-800 flex flex-col gap-2">
+                        <div class="flex justify-between items-center">
+                            <span class="text-[10px] font-bold text-zinc-300 uppercase">Elemental Status Matrix (Stackable)</span>
+                            <span id="active-elem-count-pill" class="text-[9px] bg-zinc-800 text-zinc-400 px-1.5 py-0.5 rounded font-bold mono">0 Active</span>
+                        </div>
+
+                        <div class="grid grid-cols-1 gap-1.5">
+                            <!-- Cold -->
+                            <div id="el-row-cold" class="flex items-center justify-between bg-zinc-950 px-2.5 py-1.5 rounded-lg border border-zinc-800 transition">
+                                <div class="flex items-center gap-2">
+                                    <button onclick="cycleElementalTier('cold')" class="w-6 h-6 rounded bg-cyan-950/60 border border-cyan-500/40 flex items-center justify-center text-cyan-300 text-xs hover:bg-cyan-900/60" title="Click to cycle Cold Tier">
+                                        <i class="fa-solid fa-snowflake"></i>
+                                    </button>
+                                    <div>
+                                        <span class="text-xs font-extrabold text-cyan-300 block leading-none">🌊 Cold</span>
+                                        <span id="el-sub-cold" class="text-[9px] text-zinc-500">Chill / Cold / Frozen / Incase</span>
+                                    </div>
+                                </div>
+                                <select id="aff-tier-cold" onchange="onElementalTierChange()" class="bg-zinc-900 text-cyan-200 border border-zinc-700 rounded px-2 py-0.5 text-[11px] font-bold focus:outline-none mono">
+                                    <option value="none">None</option>
+                                    <option value="low">Low (Chill)</option>
+                                    <option value="mid">Mid (Cold)</option>
+                                    <option value="high">High (Frozen)</option>
+                                    <option value="legendary">Legend (Incase)</option>
+                                </select>
+                            </div>
+
+                            <!-- Fire -->
+                            <div id="el-row-fire" class="flex items-center justify-between bg-zinc-950 px-2.5 py-1.5 rounded-lg border border-zinc-800 transition">
+                                <div class="flex items-center gap-2">
+                                    <button onclick="cycleElementalTier('fire')" class="w-6 h-6 rounded bg-orange-950/60 border border-orange-500/40 flex items-center justify-center text-orange-400 text-xs hover:bg-orange-900/60" title="Click to cycle Fire Tier">
+                                        <i class="fa-solid fa-fire"></i>
+                                    </button>
+                                    <div>
+                                        <span class="text-xs font-extrabold text-orange-400 block leading-none">🔥 Fire</span>
+                                        <span id="el-sub-fire" class="text-[9px] text-zinc-500">Warm / Hot / Burning / Radiation</span>
+                                    </div>
+                                </div>
+                                <select id="aff-tier-fire" onchange="onElementalTierChange()" class="bg-zinc-900 text-orange-200 border border-zinc-700 rounded px-2 py-0.5 text-[11px] font-bold focus:outline-none mono">
+                                    <option value="none">None</option>
+                                    <option value="low">Low (Warm)</option>
+                                    <option value="mid">Mid (Hot)</option>
+                                    <option value="high">High (Burning)</option>
+                                    <option value="legendary">Legend (Radiation)</option>
+                                </select>
+                            </div>
+
+                            <!-- Wind -->
+                            <div id="el-row-wind" class="flex items-center justify-between bg-zinc-950 px-2.5 py-1.5 rounded-lg border border-zinc-800 transition">
+                                <div class="flex items-center gap-2">
+                                    <button onclick="cycleElementalTier('wind')" class="w-6 h-6 rounded bg-emerald-950/60 border border-emerald-500/40 flex items-center justify-center text-emerald-300 text-xs hover:bg-emerald-900/60" title="Click to cycle Wind Tier">
+                                        <i class="fa-solid fa-wind"></i>
+                                    </button>
+                                    <div>
+                                        <span class="text-xs font-extrabold text-emerald-300 block leading-none">💨 Wind</span>
+                                        <span id="el-sub-wind" class="text-[9px] text-zinc-500">Buffeted / Gale / Vortex / Hurricane</span>
+                                    </div>
+                                </div>
+                                <select id="aff-tier-wind" onchange="onElementalTierChange()" class="bg-zinc-900 text-emerald-200 border border-zinc-700 rounded px-2 py-0.5 text-[11px] font-bold focus:outline-none mono">
+                                    <option value="none">None</option>
+                                    <option value="low">Low (Buffeted)</option>
+                                    <option value="mid">Mid (Gale)</option>
+                                    <option value="high">High (Vortex)</option>
+                                    <option value="legendary">Legend (Hurricane)</option>
+                                </select>
+                            </div>
+
+                            <!-- Lightning -->
+                            <div id="el-row-lightning" class="flex items-center justify-between bg-zinc-950 px-2.5 py-1.5 rounded-lg border border-zinc-800 transition">
+                                <div class="flex items-center gap-2">
+                                    <button onclick="cycleElementalTier('lightning')" class="w-6 h-6 rounded bg-yellow-950/60 border border-yellow-500/40 flex items-center justify-center text-yellow-300 text-xs hover:bg-yellow-900/60" title="Click to cycle Lightning Tier">
+                                        <i class="fa-solid fa-bolt"></i>
+                                    </button>
+                                    <div>
+                                        <span class="text-xs font-extrabold text-yellow-300 block leading-none">⚡ Lightning</span>
+                                        <span id="el-sub-lightning" class="text-[9px] text-zinc-500">Shock / Arc / Smite / Tempest</span>
+                                    </div>
+                                </div>
+                                <select id="aff-tier-lightning" onchange="onElementalTierChange()" class="bg-zinc-900 text-yellow-200 border border-zinc-700 rounded px-2 py-0.5 text-[11px] font-bold focus:outline-none mono">
+                                    <option value="none">None</option>
+                                    <option value="low">Low (Shock)</option>
+                                    <option value="mid">Mid (Arc)</option>
+                                    <option value="high">High (Smite)</option>
+                                    <option value="legendary">Legend (Tempest)</option>
+                                </select>
+                            </div>
+
+                            <!-- Earth -->
+                            <div id="el-row-earth" class="flex items-center justify-between bg-zinc-950 px-2.5 py-1.5 rounded-lg border border-zinc-800 transition">
+                                <div class="flex items-center gap-2">
+                                    <button onclick="cycleElementalTier('earth')" class="w-6 h-6 rounded bg-amber-950/60 border border-amber-500/40 flex items-center justify-center text-amber-500 text-xs hover:bg-amber-900/60" title="Click to cycle Earth Tier">
+                                        <i class="fa-solid fa-mountain"></i>
+                                    </button>
+                                    <div>
+                                        <span class="text-xs font-extrabold text-amber-500 block leading-none">🪨 Earth</span>
+                                        <span id="el-sub-earth" class="text-[9px] text-zinc-500">Gritty / Mud / Petrify / Entomb</span>
+                                    </div>
+                                </div>
+                                <select id="aff-tier-earth" onchange="onElementalTierChange()" class="bg-zinc-900 text-amber-200 border border-zinc-700 rounded px-2 py-0.5 text-[11px] font-bold focus:outline-none mono">
+                                    <option value="none">None</option>
+                                    <option value="low">Low (Gritty)</option>
+                                    <option value="mid">Mid (Mud)</option>
+                                    <option value="high">High (Petrify)</option>
+                                    <option value="legendary">Legend (Entomb)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div id="elemental-effect-readout" class="bg-zinc-950 border border-zinc-800 rounded p-2 text-[11px] text-zinc-400 space-y-1 max-h-32 overflow-y-auto">
+                            No active Elemental Afflictions. Set any element above to Low, Mid, High, or Legendary.
+                        </div>
+                    </div>
+
+                    <!-- Disease & Poison Explicit Indicator Cards -->
+                    <div class="flex flex-col gap-1.5">
+                        <!-- Disease -->
+                        <div id="disease-card" class="bg-zinc-900/90 p-2 rounded-lg border border-zinc-800 flex items-center justify-between transition">
+                            <label class="flex items-center gap-2 cursor-pointer flex-1">
+                                <input type="checkbox" id="status-disease" onchange="calculateStats()" class="w-4 h-4 accent-red-500 rounded">
+                                <div>
+                                    <span class="text-xs font-extrabold text-red-400 uppercase flex items-center gap-1.5">
+                                        <i class="fa-solid fa-biohazard"></i> Disease
+                                    </span>
+                                    <span class="text-[9px] font-black text-red-200 bg-red-950 border border-red-700 px-1.5 py-0.5 rounded inline-block mt-0.5">
+                                        INDICATOR: CAN'T HEAL (-2 Tangible Hit)
+                                    </span>
+                                </div>
+                            </label>
+                        </div>
+
+                        <!-- Poison -->
+                        <div id="poison-card" class="bg-zinc-900/90 p-2 rounded-lg border border-zinc-800 flex items-center justify-between gap-2 transition">
+                            <label class="flex items-center gap-2 cursor-pointer flex-1">
+                                <input type="checkbox" id="status-poison" onchange="calculateStats()" class="w-4 h-4 accent-lime-500 rounded">
+                                <div>
+                                    <span class="text-xs font-extrabold text-lime-400 uppercase flex items-center gap-1.5">
+                                        <i class="fa-solid fa-vial-virus"></i> Poison
+                                    </span>
+                                    <span class="text-[9px] font-black text-lime-200 bg-lime-950 border border-lime-700 px-1.5 py-0.5 rounded inline-block mt-0.5">
+                                        INDICATOR: TAKE DAMAGE FROM ALL HEALING
+                                    </span>
+                                </div>
+                            </label>
+                            <div class="flex items-center gap-1">
+                                <span class="text-[9px] text-zinc-400">Stacks:</span>
+                                <input type="number" id="poison-stacks" value="0" min="0" max="99" oninput="calculateStats()" class="input-dark w-11 text-center font-bold text-lime-300 rounded p-0.5 text-xs mono">
+                            </div>
+                        </div>
+
+                        <!-- Bleeding & Sundered -->
+                        <div class="grid grid-cols-2 gap-1.5">
+                            <label class="bg-zinc-900/90 p-2 rounded-lg border border-zinc-800 flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" id="status-bleed" onchange="calculateStats()" class="accent-rose-500">
+                                <div>
+                                    <span class="text-[11px] font-bold text-rose-400 block">Bleeding</span>
+                                    <span class="text-[9px] text-zinc-400">2 dmg/turn | 6/sq move</span>
+                                </div>
+                            </label>
+                            <label class="bg-zinc-900/90 p-2 rounded-lg border border-zinc-800 flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" id="status-sunder" onchange="calculateStats()" class="accent-orange-500">
+                                <div>
+                                    <span class="text-[11px] font-bold text-orange-400 block">Sundered</span>
+                                    <span class="text-[9px] text-zinc-400">BD &amp; Shield ½ | -5 Dmg</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SUB-TAB 2: MARK TAB -->
+            <div id="center-tab-mark" class="hidden flex-col gap-3">
+                <div class="bg-purple-950/30 border border-purple-700/50 rounded-xl p-3.5 flex flex-col gap-3">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3 class="cinzel text-sm font-bold text-purple-300 uppercase">Character Mark Status</h3>
+                            <p class="text-[11px] text-zinc-400">Toggle if your operative is Marked by an elemental or cosmic force</p>
+                        </div>
+                        <label class="inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="mark-active-toggle" onchange="calculateStats()" class="sr-only peer">
+                            <div class="w-11 h-6 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all relative peer-checked:bg-purple-600"></div>
+                        </label>
+                    </div>
+
+                    <div>
+                        <label class="text-[10px] font-bold text-zinc-400 uppercase block mb-1">Select Mark Element</label>
+                        <select id="mark-element-select" onchange="calculateStats()" class="input-dark w-full rounded-lg p-2 text-xs font-bold text-purple-200">
+                            <option value="Fire">🔥 Flame (Fire)</option>
+                            <option value="Water">🌊 Water / Cold</option>
+                            <option value="Earth">🪨 Earth</option>
+                            <option value="Wind">💨 Wind</option>
+                            <option value="Lightning">⚡ Lightning</option>
+                            <option value="Blood">🩸 Blood</option>
+                            <option value="Light">☀️ Light</option>
+                            <option value="Darkness">🌑 Darkness</option>
+                        </select>
+                    </div>
+
+                    <!-- Positive Mark Box -->
+                    <div class="bg-emerald-950/50 border border-emerald-600/60 rounded-xl p-3 flex flex-col gap-1">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] font-extrabold uppercase tracking-wider text-emerald-400">
+                                <i class="fa-solid fa-circle-plus mr-1"></i>Positive Mark Blessing
+                            </span>
+                            <span id="mark-pos-badge" class="text-xs font-black text-emerald-300 mono">+5 Fire Dmg</span>
+                        </div>
+                        <p class="text-xs font-extrabold text-zinc-100">
+                            "Add Element of your level to attack damage"
+                        </p>
+                        <p id="mark-pos-detail" class="text-[11px] text-emerald-200/90">
+                            Adds <strong>+5 Fire</strong> damage directly to your attack payloads.
+                        </p>
+                    </div>
+
+                    <!-- Negative Mark Box -->
+                    <div class="bg-red-950/50 border border-red-600/60 rounded-xl p-3 flex flex-col gap-1">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] font-extrabold uppercase tracking-wider text-red-400">
+                                <i class="fa-solid fa-circle-minus mr-1"></i>Negative Mark Vulnerability
+                            </span>
+                            <span id="mark-neg-badge" class="text-xs font-black text-red-300 mono">+5 Water Taken</span>
+                        </div>
+                        <p class="text-xs font-extrabold text-zinc-100">
+                            "Receive additional damage of the opposing element equal to your level"
+                        </p>
+                        <p id="mark-neg-detail" class="text-[11px] text-red-200/90">
+                            Incoming <strong>Water</strong> attacks deal an additional <strong>+5 damage</strong> to you.
+                        </p>
+                    </div>
+
+                    <div class="bg-zinc-950/90 border border-zinc-800 rounded-lg p-2.5 text-[10px] text-zinc-400">
+                        <span class="font-bold text-zinc-300 uppercase block mb-1">🔄 The Elemental Chase Wheel</span>
+                        <p class="mono text-[10px] text-sky-300">🪨 Earth ➔ ⚡ Lightning ➔ 💨 Wind ➔ 🌊 Water ➔ 🔥 Fire ➔ 🪨 Earth</p>
+                        <p class="mt-1">☀️ <strong>Light</strong> &amp; 🌑 <strong>Darkness</strong> mutually oppose each other.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- COLUMN 3: DEFENSE, WEAPONS, CORES & INVENTORY (4 Cols) -->
+        <section class="lg:col-span-4 panel-bg rounded-xl p-4 flex flex-col gap-3">
+            <div class="border-b border-zinc-800 pb-2 flex justify-between items-center">
+                <h2 class="cinzel text-sm font-bold tracking-wider text-amber-400 uppercase flex items-center gap-2">
+                    <i class="fa-solid fa-shield-halved text-amber-500"></i> Loadout, Cores &amp; Gear
+                </h2>
+                <span class="text-[10px] text-zinc-400 mono">Total DR: <strong id="total-dr-badge" class="text-sky-300 text-xs">8 DR</strong></span>
+            </div>
+
+            <!-- Defense Totals Row -->
+            <div class="grid grid-cols-3 gap-2 bg-zinc-900/90 p-2.5 rounded-xl border border-zinc-800 text-xs">
+                <div>
+                    <label class="text-[9px] text-zinc-400 uppercase block">Worn Armor DR</label>
+                    <input type="number" id="armor-dr" value="6" min="0" oninput="calculateStats()" class="input-dark w-full text-center font-bold text-sky-300 rounded p-1 mt-0.5 mono">
+                </div>
+                <div>
+                    <label class="text-[9px] text-zinc-400 uppercase block">Shield DR</label>
+                    <input type="number" id="shield-dr" value="2" min="0" oninput="calculateStats()" class="input-dark w-full text-center font-bold text-emerald-300 rounded p-1 mt-0.5 mono">
+                </div>
+                <div>
+                    <label class="text-[9px] text-zinc-400 uppercase block">Bone Ceiling</label>
+                    <div id="defense-bd-readout" class="bg-zinc-950 border border-zinc-800 text-amber-300 font-extrabold text-center rounded p-1 mt-0.5 mono">3 BD</div>
+                </div>
+            </div>
+
+            <!-- Weapons & Attacks -->
+            <div class="flex flex-col gap-2">
+                <div class="flex justify-between items-center">
+                    <span class="text-xs font-bold text-zinc-300 uppercase tracking-wider">Weapons &amp; Payloads</span>
+                    <button onclick="addWeaponSlot()" class="bg-zinc-800 hover:bg-zinc-700 text-amber-300 text-[10px] px-2 py-0.5 rounded border border-zinc-700 transition font-bold">
+                        <i class="fa-solid fa-plus"></i> Add Weapon
+                    </button>
+                </div>
+                <div id="weapons-container" class="flex flex-col gap-2 max-h-44 overflow-y-auto pr-1"></div>
+            </div>
+
+            <!-- Slotted Monster Cores & Stat Multiplier Engine -->
+            <div class="border-t border-zinc-800 pt-2.5 flex flex-col gap-2">
+                <div class="flex flex-wrap justify-between items-center gap-1">
+                    <div class="flex items-center gap-1 bg-zinc-950 p-1 rounded-lg border border-zinc-800">
+                        <button id="core-tab-btn-slots" onclick="switchCoreSubTab('slots')" class="px-2.5 py-1 rounded text-[10px] font-extrabold uppercase tracking-wider bg-sky-600 text-white transition flex items-center gap-1">
+                            <i class="fa-solid fa-gem"></i> Slotted Cores <span id="core-points-sum" class="mono text-[9px] text-sky-200">(7 Pts)</span>
+                        </button>
+                        <button id="core-tab-btn-mults" onclick="switchCoreSubTab('mults')" class="px-2.5 py-1 rounded text-[10px] font-extrabold uppercase tracking-wider text-zinc-400 hover:text-amber-300 transition flex items-center gap-1">
+                            <i class="fa-solid fa-bolt-lightning text-amber-400"></i> Core Stat Multipliers
+                        </button>
+                    </div>
+                    <button onclick="addCoreSlot()" class="bg-zinc-800 hover:bg-zinc-700 text-sky-300 text-[10px] px-2 py-1 rounded-lg border border-zinc-700 transition font-bold">
+                        <i class="fa-solid fa-plus"></i> Socket Core
+                    </button>
+                </div>
+
+                <!-- Sub-Tab A: Slotted Cores List (With Grade Multiplier & Mod Target) -->
+                <div id="core-subtab-slots" class="flex flex-col gap-2 max-h-56 overflow-y-auto pr-1"></div>
+
+                <!-- Sub-Tab B: Core Stat Multipliers Live Summary -->
+                <div id="core-subtab-mults" class="hidden flex-col gap-2 bg-zinc-950/90 p-2.5 rounded-xl border border-amber-500/40 text-xs">
+                    <div class="flex justify-between items-center border-b border-zinc-800 pb-1.5">
+                        <span class="text-[10px] font-extrabold uppercase tracking-wider text-amber-400">
+                            <i class="fa-solid fa-calculator mr-1"></i>Point Multiplier Engine
+                        </span>
+                        <span class="text-[9px] text-zinc-400 mono">Stat Total = Base Stat × Core Points</span>
+                    </div>
+                    <div id="core-mult-breakdown-list" class="space-y-1.5 text-[11px]"></div>
+                </div>
+            </div>
+
+            <!-- Inventory, Weight & Remnant Economy -->
+            <div class="border-t border-zinc-800 pt-2 flex flex-col gap-2">
+                <div class="flex justify-between items-center">
+                    <span class="text-xs font-bold text-zinc-300 uppercase tracking-wider">Logistics &amp; Economy</span>
+                    <span id="encumbrance-badge" class="text-[10px] bg-emerald-950/70 text-emerald-300 border border-emerald-700/50 px-2 py-0.5 rounded font-bold">Unencumbered</span>
+                </div>
+
+                <div class="grid grid-cols-3 gap-2 text-xs">
+                    <div class="bg-zinc-900 p-2 rounded-lg border border-zinc-800">
+                        <span class="text-[9px] text-zinc-400 uppercase block">Active Gear Wt</span>
+                        <div class="flex items-center gap-1 mt-0.5">
+                            <input type="number" id="carried-weight" value="14" min="0" oninput="calculateStats()" class="input-dark w-11 text-center font-bold text-zinc-100 rounded p-0.5 text-xs mono">
+                            <span class="text-[10px] text-zinc-500">/ <span id="max-weight-inline">17</span></span>
+                        </div>
+                    </div>
+                    <div class="bg-zinc-900 p-2 rounded-lg border border-zinc-800">
+                        <span class="text-[9px] text-zinc-400 uppercase block">Copper (CC)</span>
+                        <input type="number" id="inv-cc" value="145" oninput="scheduleSync()" class="input-dark w-full text-center font-bold text-amber-400 rounded p-0.5 mt-0.5 text-xs mono">
+                    </div>
+                    <div class="bg-zinc-900 p-2 rounded-lg border border-zinc-800">
+                        <span class="text-[9px] text-zinc-400 uppercase block">Supplies</span>
+                        <div class="flex items-center gap-1 mt-0.5">
+                            <input type="number" id="inv-supplies" value="6" min="0" oninput="scheduleSync()" class="input-dark w-full text-center font-bold text-emerald-400 rounded p-0.5 text-xs mono">
+                            <button onclick="consumeSupply()" class="bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-700 px-1.5 py-0.5 rounded text-[9px] font-bold" title="Consume 1 Supply (Heal 2 + HR)">Eat</button>
+                        </div>
+                    </div>
+                </div>
+
+                <textarea id="inv-notes" rows="2" oninput="scheduleSync()" placeholder="Backpack items, Potions, Scrap Parts, Trinket Quirks..." class="input-dark w-full rounded-lg p-2 text-xs text-zinc-200 resize-none">Scrap Parts: 18 | Salvage Tools: 1 | Multitool Kit: 1 | Potions: 3</textarea>
+            </div>
+        </section>
+    </main>
+
+    <!-- ===================================================================== -->
+    <!-- VIEW 2: GM LIVE DASHBOARD (MASTER MONITOR VIEW)                       -->
+    <!-- ===================================================================== -->
+    <section id="view-gm-dashboard" class="hidden max-w-7xl mx-auto w-full p-3 sm:p-5 flex-col gap-5 my-1">
+        
+        <!-- GM Tactical Command Bar: Phalanx Perception + Hunt Insurance Stage 2 Calculator -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+            <!-- Combined Party Perception (The Phalanx Effect) -->
+            <div class="lg:col-span-4 panel-bg rounded-xl p-4 border-l-4 border-l-purple-500 flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-purple-400">Phase 0 Ambush Defense</span>
+                        <span class="text-[10px] bg-purple-950/80 text-purple-300 px-2 py-0.5 rounded border border-purple-700/50 font-bold">The Phalanx Effect</span>
+                    </div>
+                    <h3 class="cinzel text-base font-bold text-zinc-100 mt-1">Combined Party Perception</h3>
+                    <p class="text-[11px] text-zinc-400 mt-0.5">Sum of all active Operatives' Passive Perception (WIS) in this room.</p>
+                </div>
+                <div class="flex items-baseline justify-between mt-3 pt-2 border-t border-zinc-800">
+                    <div>
+                        <span class="text-[10px] text-zinc-400 uppercase block">Total Party Pool</span>
+                        <strong id="gm-phalanx-total" class="text-2xl font-black text-purple-300 mono">0</strong>
+                    </div>
+                    <div class="text-right text-[10px] text-zinc-400">
+                        <div>Beat Ambush by <strong>1–4</strong>: Phase 0 Standoff</div>
+                        <div>Beat Ambush by <strong>5+</strong>: Party First Strike</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hunt Insurance Stage 2 Deterministic Calculator -->
+            <div class="lg:col-span-8 panel-bg rounded-xl p-4 border-l-4 border-l-amber-500 flex flex-col justify-between gap-3">
+                <div class="flex flex-wrap justify-between items-center gap-2">
+                    <div>
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-amber-400">Guild Underwriting Protocol</span>
+                        <h3 class="cinzel text-base font-bold text-zinc-100">Hunt Insurance &amp; Stage 2 Extraction Calculator</h3>
+                    </div>
+                    <div id="insurance-outcome-badge" class="px-3 py-1 rounded-lg text-xs font-black uppercase bg-emerald-950 text-emerald-300 border border-emerald-600">
+                        RESCUE POWER (50) ≥ MONSTER WIS (30) ➔ CLEAN EXTRACTION
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                    <div class="bg-zinc-900 p-2.5 rounded-lg border border-zinc-800">
+                        <label class="text-[10px] text-zinc-400 uppercase font-bold block">Mission Threat Tier</label>
+                        <select id="ins-tier-rate" onchange="calcInsurance()" class="bg-zinc-950 text-amber-300 font-bold rounded p-1 w-full mt-1 border border-zinc-700 text-xs">
+                            <option value="5">Low Tier (5 CC / pt)</option>
+                            <option value="10" selected>Mid Tier (10 CC / pt)</option>
+                            <option value="15">High Tier (15 CC / pt)</option>
+                            <option value="25">Legendary (25 CC / pt)</option>
+                        </select>
+                    </div>
+                    <div class="bg-zinc-900 p-2.5 rounded-lg border border-zinc-800">
+                        <label class="text-[10px] text-zinc-400 uppercase font-bold block">Purchased d20 Target (N)</label>
+                        <div class="flex items-center gap-2 mt-1">
+                            <input type="number" id="ins-target-n" value="10" min="0" max="20" oninput="calcInsurance()" class="input-dark w-16 text-center font-extrabold text-sky-300 rounded p-1 mono">
+                            <span id="ins-cost-readout" class="text-[11px] text-amber-400 font-bold mono">= 100 CC</span>
+                        </div>
+                    </div>
+                    <div class="bg-zinc-900 p-2.5 rounded-lg border border-zinc-800">
+                        <label class="text-[10px] text-zinc-400 uppercase font-bold block">Rescue Power (N × 5)</label>
+                        <div id="ins-rescue-power" class="text-lg font-black text-sky-400 mono mt-1">50 Power</div>
+                    </div>
+                    <div class="bg-zinc-900 p-2.5 rounded-lg border border-zinc-800">
+                        <label class="text-[10px] text-zinc-400 uppercase font-bold block">Surviving Monster WIS</label>
+                        <input type="number" id="ins-monster-wis" value="30" min="0" oninput="calcInsurance()" class="input-dark w-full text-center font-extrabold text-red-400 rounded p-1 mt-1 mono">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Initiative Turn Order Strip (Sorted by Non-Combat Speed / Initiative) -->
+        <div class="panel-bg rounded-xl p-3.5 border-l-4 border-l-emerald-500 flex flex-col gap-2">
+            <div class="flex flex-wrap justify-between items-center gap-2">
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] bg-emerald-950/90 text-emerald-300 px-2 py-0.5 rounded border border-emerald-600/50 font-extrabold uppercase tracking-wider">
+                        <i class="fa-solid fa-bolt mr-1"></i>Initiative Turn Order
+                    </span>
+                    <h3 class="cinzel text-sm font-bold text-zinc-100 uppercase">Non-Combat Movement Speed Ranking (Fastest First)</h3>
+                </div>
+                <span class="text-[10px] text-zinc-400 mono">Formula: ((DEX × 2) + Height - Encumbrance) × Core Movement Multiplier</span>
+            </div>
+            <div id="gm-initiative-strip" class="flex flex-wrap items-center gap-2 pt-1">
+                <!-- Populated dynamically in descending Non-Combat Move order -->
+            </div>
+        </div>
+
+        <!-- GM Live Operatives Roster Header -->
+        <div class="flex flex-wrap justify-between items-center gap-2 border-b border-zinc-800 pb-2">
+            <div class="flex items-center gap-2">
+                <h2 class="cinzel text-base font-bold text-amber-400 uppercase tracking-wider">
+                    <i class="fa-solid fa-users-viewfinder mr-1.5"></i>Live Party Operatives Monitor
+                </h2>
+                <span class="text-xs text-zinc-400">(Room: <strong id="gm-room-label" class="text-sky-300 mono">BRIGHT-FRACTURE-MAIN</strong>)</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="text-xs text-zinc-400">Combined Party CC: <strong id="gm-total-cc" class="text-amber-400 mono">0 CC</strong></span>
+                <button onclick="toggleClipboardModal(true)" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3 py-1 rounded-lg text-xs font-bold border border-zinc-700">
+                    <i class="fa-solid fa-file-import text-emerald-400 mr-1"></i>Import Player JSON
+                </button>
+            </div>
+        </div>
+
+        <!-- Live Operative Cards Grid -->
+        <div id="gm-operatives-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <!-- Populated dynamically by Firebase onSnapshot or local cache -->
+        </div>
+    </section>
+
+    <!-- Discord / Clipboard JSON Export & Import Modal -->
+    <div id="clipboard-modal" class="fixed inset-0 bg-black/80 z-50 hidden items-center justify-center p-4">
+        <div class="panel-bg max-w-lg w-full rounded-2xl p-5 border border-sky-500/50 shadow-2xl flex flex-col gap-3">
+            <div class="flex justify-between items-center border-b border-zinc-800 pb-2">
+                <h3 class="cinzel font-bold text-sm text-sky-400 uppercase flex items-center gap-2">
+                    <i class="fa-brands fa-discord"></i> Operative JSON Share &amp; Backup
+                </h3>
+                <button onclick="toggleClipboardModal(false)" class="text-zinc-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <p class="text-xs text-zinc-300">Copy this JSON code to share your character over Discord, or paste a player's JSON string below to load or add them to the GM Dashboard.</p>
+            <textarea id="json-clipboard-area" rows="6" class="input-dark w-full rounded-xl p-2.5 text-[11px] mono text-sky-200"></textarea>
+            <div class="flex flex-wrap justify-between items-center gap-2 pt-1">
+                <div class="flex gap-2">
+                    <button onclick="copyClipboardJSON()" class="bg-sky-600 hover:bg-sky-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5">
+                        <i class="fa-solid fa-copy"></i> Copy to Clipboard
+                    </button>
+                    <button onclick="exportJSONFile()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3 py-1.5 rounded-lg text-xs font-bold border border-zinc-700">
+                        <i class="fa-solid fa-download mr-1"></i>Download .JSON
+                    </button>
+                </div>
+                <button onclick="loadFromClipboardJSON()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5">
+                    <i class="fa-solid fa-check"></i> Load / Sync JSON
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reset / New Operative Modal -->
+    <div id="reset-modal" class="fixed inset-0 bg-black/80 z-50 hidden items-center justify-center p-4">
+        <div class="panel-bg max-w-sm w-full rounded-2xl p-5 border border-red-500/50 shadow-2xl flex flex-col gap-4">
+            <div class="flex items-center gap-3 text-red-400">
+                <i class="fa-solid fa-user-plus text-xl"></i>
+                <h3 class="cinzel font-bold text-base uppercase">Create Fresh Operative?</h3>
+            </div>
+            <p class="text-xs text-zinc-300">This generates a new unique Operative ID and resets your local sheet to Level 0 Forged in Fire defaults.</p>
+            <div class="flex justify-end gap-2">
+                <button onclick="toggleResetModal(false)" class="px-3 py-1.5 rounded-lg bg-zinc-800 text-zinc-300 text-xs font-bold">Cancel</button>
+                <button onclick="confirmNewOperative()" class="px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-500 text-white text-xs font-bold">Create New</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="panel-bg border-t border-zinc-800 px-4 py-2 text-center text-[11px] text-zinc-500">
+        Bright Fracture: Kingdoms of Ash &amp; Bone // Operative &amp; GM Live Sync Engine v4.0
+    </footer>
+
+    <!-- Application Logic & Firebase Cloud Sync -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, deleteDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        //Core State
+        let operativeId = localStorage.getItem('bf_operative_id') || ('op_' + crypto.randomUUID().slice(0, 8));
+        localStorage.setItem('bf_operative_id', operativeId);
+
+        let unspentPoints = 0;
+        let shieldBearerCarryActive = false;
+        let haulerCarryActive = false;
+        let syncTimeout = null;
+        let partyRoster = {}; // Map of operativeId -> operativeData
+
+        // BroadcastChannel for instant multi-tab local sync alongside Firebase
+        const localBroadcast = ('BroadcastChannel' in window) ? new BroadcastChannel('bright_fracture_room_channel') : null;
+        if (localBroadcast) {
+            localBroadcast.onmessage = (event) => {
+                const data = event.data;
+                const activeRoom = (document.getElementById('room-code-input').value || 'BRIGHT-FRACTURE-MAIN').trim().toUpperCase();
+                if (data && data.operativeId && (data.roomCode || 'BRIGHT-FRACTURE-MAIN').toUpperCase() === activeRoom) {
+                    partyRoster[data.operativeId] = data;
+                    renderGMDashboard();
+                }
+            };
+        }
+
+        let weaponsList = [
+            { name: "Blight Strike Daggers", type: "Finesse", baseDmg: 8, elemBase: 2, elemType: "Lightning", sockets: 2 },
+            { name: "Reinforced Carbide Blade", type: "Brute", baseDmg: 10, elemBase: 0, elemType: "Physical", sockets: 2 }
+        ];
+
+        let coresList = [
+            { name: "Crimson Leviathan Core", gradePoints: 5, modTarget: "HP", elemBase: 4, elemType: "Fire" },
+            { name: "Yellow Volt Core", gradePoints: 4, modTarget: "Elemental", elemBase: 3, elemType: "Lightning" }
+        ];
+
+        const ELEMENTAL_KEYS = ['cold', 'fire', 'wind', 'lightning', 'earth'];
+        const TIER_ORDER = ['none', 'low', 'mid', 'high', 'legendary'];
+
+        const CORE_GRADE_LABELS = {
+            0: "None (0pt)",
+            1: "D-Grade / Scrap (1pt)",
+            2: "C-Grade / Low (2pt)",
+            3: "B-Grade / Mid (3pt)",
+            4: "A-Grade / High (4pt)",
+            5: "S-Grade / Legend (5pt)"
+        };
+
+        const ELEMENTAL_MATRIX = {
+            cold: {
+                name: "Cold",
+                icon: "🌊",
+                badgeClass: "bg-cyan-950 border-cyan-500 text-cyan-200",
+                rowActiveClass: "border-cyan-500/80 bg-cyan-950/25",
+                low: "Chill (Low): Combat Movement reduced by -5 ft for next turn.",
+                mid: "Cold (Mid): Combat Movement -10 ft (encounter) + 2 flat damage/turn.",
+                high: "Frozen (High): Combat Move drops to 0 + 4 dmg/turn. Costs 1 AP to shatter.",
+                legendary: "Incase (Legendary): Stunned, Move 0, DEX evasion negated + 4 dmg/turn."
+            },
+            fire: {
+                name: "Fire",
+                icon: "🔥",
+                badgeClass: "bg-orange-950 border-orange-500 text-orange-200",
+                rowActiveClass: "border-orange-500/80 bg-orange-950/25",
+                low: "Warm (Low): 2 flat Fire damage at start of next turn.",
+                mid: "Hot (Mid): 4 flat Fire damage at start of every turn (encounter).",
+                high: "Burning (High): Escalating 6, 6, 8... Fire damage per turn. Spend 1 AP to smother.",
+                legendary: "Radiation (Legendary): Escalating 9, 12, 15... damage; permanently burns Max Flesh HP."
+            },
+            wind: {
+                name: "Wind",
+                icon: "💨",
+                badgeClass: "bg-emerald-950 border-emerald-500 text-emerald-200",
+                rowActiveClass: "border-emerald-500/80 bg-emerald-950/25",
+                low: "Buffeted (Low): Shoved 5 ft (1 sq) backward; Shield Facing compromised.",
+                mid: "Gale (Mid): Thrown 10 ft (2 sq) backward; STR > 10 check to stay upright.",
+                high: "Vortex (High): Thrown 15 ft (3 sq); STR > 15 check to resist pull.",
+                legendary: "Hurricane (Legendary): Thrown 20 ft (4 sq), Prone, Combat Move 0 (1 AP to clear)."
+            },
+            lightning: {
+                name: "Lightning",
+                icon: "⚡",
+                badgeClass: "bg-yellow-950 border-yellow-500 text-yellow-200",
+                rowActiveClass: "border-yellow-500/80 bg-yellow-950/25",
+                low: "Shock (Low): Neural spasms inflict -6 Accuracy for next turn.",
+                mid: "Arc (Mid): Permanent -6 Accuracy and +1d6 incoming damage for encounter.",
+                high: "Smite (High): Instantly Stunned, -12 Accuracy, and +2d6 incoming damage.",
+                legendary: "Tempest (Legendary): Stunned, -12 Accuracy, and +3d6 incoming damage."
+            },
+            earth: {
+                name: "Earth",
+                icon: "🪨",
+                badgeClass: "bg-amber-950 border-amber-500 text-amber-200",
+                rowActiveClass: "border-amber-500/80 bg-amber-950/25",
+                low: "Gritty (Low): Natural 1 fumble range expands to 1–2 on d20 for next turn.",
+                mid: "Mud (Mid): Fumble range expands to 1–4 and +1d6 incoming damage.",
+                high: "Petrify (High): Rooted (Move 0), fumble range 1–6, and +2d6 incoming damage.",
+                legendary: "Entomb (Legendary): Permanently Rooted, fumble range 1–10, and +3d6 incoming damage."
+            }
+        };
+
+        const OPPOSING_ELEMENT_MAP = {
+            Fire: "Water",
+            Water: "Wind",
+            Wind: "Lightning",
+            Lightning: "Earth",
+            Earth: "Fire",
+            Light: "Darkness",
+            Darkness: "Light",
+            Blood: "Lightning (Opposes Water)"
+        };
+
+        // Firebase Initialization
+        let db = null;
+        let auth = null;
+        let currentUser = null;
+        let unsubscribeRoom = null;
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'bright-fracture-default';
+
+        async function initFirebase() {
+            const statusEl = document.getElementById('sync-status-indicator');
+            try {
+                if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+                    const firebaseConfig = JSON.parse(__firebase_config);
+                    const app = initializeApp(firebaseConfig);
+                    auth = getAuth(app);
+                    db = getFirestore(app);
+
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+
+                    onAuthStateChanged(auth, (user) => {
+                        currentUser = user;
+                        if (user) {
+                            statusEl.innerHTML = `<i class="fa-solid fa-cloud text-emerald-400"></i> Live Cloud Sync`;
+                            statusEl.className = "text-emerald-400 font-semibold flex items-center gap-1";
+                            subscribeToPartyRoom();
+                            forceCloudSync(false);
+                        }
+                    });
+                } else {
+                    statusEl.innerHTML = `<i class="fa-solid fa-hard-drive text-amber-400"></i> Local Mode (Use JSON Share)`;
+                }
+            } catch (err) {
+                console.error("Firebase init fallback:", err);
+                statusEl.innerHTML = `<i class="fa-solid fa-hard-drive text-amber-400"></i> Local Mode`;
+            }
+        }
+
+        function subscribeToPartyRoom() {
+            if (!db || !currentUser) return;
+            if (unsubscribeRoom) unsubscribeRoom();
+
+            const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'bf_operatives');
+            unsubscribeRoom = onSnapshot(colRef, (snapshot) => {
+                const activeRoom = (document.getElementById('room-code-input').value || 'BRIGHT-FRACTURE-MAIN').trim().toUpperCase();
+                partyRoster = {};
+                snapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    if ((data.roomCode || 'BRIGHT-FRACTURE-MAIN').toUpperCase() === activeRoom) {
+                        partyRoster[docSnap.id] = data;
+                    }
+                });
+                renderGMDashboard();
+            }, (err) => {
+                console.error("Firestore listener error:", err);
+            });
+        }
+
+        async function pushToCloud() {
+            const state = getSheetState();
+            partyRoster[operativeId] = state;
+            if (localBroadcast) {
+                try { localBroadcast.postMessage(state); } catch (e) {}
+            }
+            renderGMDashboard();
+
+            if (!db || !currentUser) return;
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'bf_operatives', operativeId);
+                await setDoc(docRef, state);
+            } catch (e) {
+                console.error("Cloud push error:", e);
+            }
+        }
+
+        window.forceCloudSync = async function(showNotification = true) {
+            saveLocal();
+            await pushToCloud();
+            if (showNotification) showToast("Operative sheet synced to Live GM Dashboard!");
+        };
+
+        window.changeRoomCode = function() {
+            const codeInput = document.getElementById('room-code-input');
+            codeInput.value = (codeInput.value || 'BRIGHT-FRACTURE-MAIN').trim().toUpperCase();
+            document.getElementById('gm-room-label').innerText = codeInput.value;
+            subscribeToPartyRoom();
+            forceCloudSync(true);
+        };
+
+        window.scheduleSync = function() {
+            saveLocal();
+            if (syncTimeout) clearTimeout(syncTimeout);
+            syncTimeout = setTimeout(() => {
+                pushToCloud();
+            }, 600);
+        };
+
+        // UI & Helper Functions exposed to window
+        window.showToast = function(msg) {
+            const toast = document.getElementById('toast-banner');
+            document.getElementById('toast-msg').innerText = msg;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 2800);
+        };
+
+        window.switchTopMode = function(mode) {
+            const playerView = document.getElementById('view-player-sheet');
+            const gmView = document.getElementById('view-gm-dashboard');
+            const idStrip = document.getElementById('operative-identity-strip');
+            const btnPlayer = document.getElementById('mode-btn-player');
+            const btnGM = document.getElementById('mode-btn-gm');
+
+            if (mode === 'gm') {
+                playerView.classList.add('hidden');
+                idStrip.classList.add('hidden');
+                gmView.classList.remove('hidden');
+                gmView.classList.add('flex');
+                btnGM.className = "px-3.5 py-1.5 rounded-lg text-xs font-extrabold uppercase tracking-wider bg-amber-600 text-zinc-950 shadow transition flex items-center gap-1.5";
+                btnPlayer.className = "px-3.5 py-1.5 rounded-lg text-xs font-extrabold uppercase tracking-wider text-zinc-400 hover:text-sky-300 transition flex items-center gap-1.5";
+                renderGMDashboard();
+            } else {
+                gmView.classList.add('hidden');
+                gmView.classList.remove('flex');
+                playerView.classList.remove('hidden');
+                idStrip.classList.remove('hidden');
+                btnPlayer.className = "px-3.5 py-1.5 rounded-lg text-xs font-extrabold uppercase tracking-wider bg-sky-600 text-white shadow transition flex items-center gap-1.5";
+                btnGM.className = "px-3.5 py-1.5 rounded-lg text-xs font-extrabold uppercase tracking-wider text-zinc-400 hover:text-amber-300 transition flex items-center gap-1.5";
+            }
+        };
+
+        window.switchCenterTab = function(tab) {
+            const vitalsDiv = document.getElementById('center-tab-vitals');
+            const markDiv = document.getElementById('center-tab-mark');
+            const btnVitals = document.getElementById('tab-btn-vitals');
+            const btnMark = document.getElementById('tab-btn-mark');
+
+            if (tab === 'mark') {
+                vitalsDiv.classList.add('hidden');
+                markDiv.classList.remove('hidden');
+                markDiv.classList.add('flex');
+                btnMark.className = "px-3 py-1.5 rounded-lg text-xs font-extrabold uppercase tracking-wider bg-purple-950/90 text-purple-200 border border-purple-500/60 transition flex items-center gap-1.5";
+                btnVitals.className = "px-3 py-1.5 rounded-lg text-xs font-extrabold uppercase tracking-wider bg-zinc-900 text-zinc-400 border border-zinc-800 hover:text-emerald-300 transition flex items-center gap-1.5";
+            } else {
+                markDiv.classList.add('hidden');
+                markDiv.classList.remove('flex');
+                vitalsDiv.classList.remove('hidden');
+                btnVitals.className = "px-3 py-1.5 rounded-lg text-xs font-extrabold uppercase tracking-wider bg-emerald-950/80 text-emerald-300 border border-emerald-600/50 transition flex items-center gap-1.5";
+                btnMark.className = "px-3 py-1.5 rounded-lg text-xs font-extrabold uppercase tracking-wider bg-zinc-900 text-zinc-400 border border-zinc-800 hover:text-purple-300 transition flex items-center gap-1.5";
+            }
+        };
+
+        window.switchCoreSubTab = function(tab) {
+            const slotsDiv = document.getElementById('core-subtab-slots');
+            const multsDiv = document.getElementById('core-subtab-mults');
+            const btnSlots = document.getElementById('core-tab-btn-slots');
+            const btnMults = document.getElementById('core-tab-btn-mults');
+
+            if (tab === 'mults') {
+                slotsDiv.classList.add('hidden');
+                multsDiv.classList.remove('hidden');
+                multsDiv.classList.add('flex');
+                btnMults.className = "px-2.5 py-1 rounded text-[10px] font-extrabold uppercase tracking-wider bg-amber-500 text-zinc-950 transition flex items-center gap-1";
+                btnSlots.className = "px-2.5 py-1 rounded text-[10px] font-extrabold uppercase tracking-wider text-zinc-400 hover:text-sky-300 transition flex items-center gap-1";
+            } else {
+                multsDiv.classList.add('hidden');
+                multsDiv.classList.remove('flex');
+                slotsDiv.classList.remove('hidden');
+                btnSlots.className = "px-2.5 py-1 rounded text-[10px] font-extrabold uppercase tracking-wider bg-sky-600 text-white transition flex items-center gap-1";
+                btnMults.className = "px-2.5 py-1 rounded text-[10px] font-extrabold uppercase tracking-wider text-zinc-400 hover:text-amber-300 transition flex items-center gap-1";
+            }
+        };
+
+        // Compute Core Multipliers from Slotted Cores
+        function getCoreMultipliers() {
+            const mults = {
+                HP: 1,
+                Movement: 1,
+                AP: 1,
+                Mana: 1,
+                Elemental: 1,
+                elemBonusTotal: 0,
+                elemDetails: []
+            };
+
+            let hpPts = 0;
+            let movePts = 0;
+            let apPts = 0;
+            let manaPts = 0;
+            let elemPts = 0;
+
+            coresList.forEach(c => {
+                const pts = parseInt(c.gradePoints) || 0;
+                if (pts <= 0) return;
+                const target = c.modTarget || 'None';
+                if (target === 'HP') hpPts += pts;
+                else if (target === 'Movement') movePts += pts;
+                else if (target === 'AP') apPts += pts;
+                else if (target === 'Mana') manaPts += pts;
+                else if (target === 'Elemental') {
+                    elemPts += pts;
+                    const baseEl = parseInt(c.elemBase) || 1;
+                    const boosted = baseEl * pts;
+                    mults.elemBonusTotal += boosted;
+                    mults.elemDetails.push(`+${boosted} ${c.elemType || 'Elemental'} (${baseEl}×${pts}pt)`);
+                }
+            });
+
+            if (hpPts > 0) mults.HP = hpPts;
+            if (movePts > 0) mults.Movement = movePts;
+            if (apPts > 0) mults.AP = apPts;
+            if (manaPts > 0) mults.Mana = manaPts;
+            if (elemPts > 0) mults.Elemental = elemPts;
+
+            return mults;
+        }
+
+        window.onClassChange = function() {
+            const cls = document.getElementById('op-class').value;
+            if (cls === 'Shield Bearer') shieldBearerCarryActive = true;
+            calculateStats();
+        };
+
+        window.onSubclassChange = function() {
+            const sub = document.getElementById('op-subclass').value;
+            if (sub === 'Cooking Hauler') haulerCarryActive = true;
+            calculateStats();
+        };
+
+        window.adjustUnspentPoints = function(delta) {
+            unspentPoints = Math.max(0, unspentPoints + delta);
+            document.getElementById('unspent-points-display').innerText = unspentPoints;
+            calculateStats();
+        };
+
+        window.syncBudgetToLevel = function() {
+            const level = parseInt(document.getElementById('op-level').value) || 0;
+            const totalAllowed = 9 + (level * 4);
+            const str = parseInt(document.getElementById('attr-str').value) || 1;
+            const dex = parseInt(document.getElementById('attr-dex').value) || 1;
+            const con = parseInt(document.getElementById('attr-con').value) || 1;
+            const wis = parseInt(document.getElementById('attr-wis').value) || 1;
+            const int = parseInt(document.getElementById('attr-int').value) || 1;
+            const spent = str + dex + con + wis + int;
+            unspentPoints = Math.max(0, totalAllowed - spent);
+            document.getElementById('unspent-points-display').innerText = unspentPoints;
+            calculateStats();
+            showToast(`Attribute pool calibrated for Level ${level} (${totalAllowed} total pts).`);
+        };
+
+        window.levelUpOperative = function() {
+            const lvlInput = document.getElementById('op-level');
+            const cur = parseInt(lvlInput.value) || 0;
+            if (cur < 20) {
+                lvlInput.value = cur + 1;
+                unspentPoints += 4;
+                document.getElementById('unspent-points-display').innerText = unspentPoints;
+                calculateStats();
+                showToast(`Level ${cur + 1} reached! +4 Unspent Attribute Points granted.`);
+            }
+        };
+
+        window.stepStat = function(id, delta) {
+            const input = document.getElementById(id);
+            let val = parseInt(input.value) || 1;
+            if (delta > 0 && val < 20) {
+                input.value = val + 1;
+                if (unspentPoints > 0) {
+                    unspentPoints--;
+                    document.getElementById('unspent-points-display').innerText = unspentPoints;
+                }
+            } else if (delta < 0 && val > 1) {
+                input.value = val - 1;
+                unspentPoints++;
+                document.getElementById('unspent-points-display').innerText = unspentPoints;
+            }
+            calculateStats();
+        };
+
+        window.toggleShieldBearerCarry = function() {
+            shieldBearerCarryActive = !shieldBearerCarryActive;
+            calculateStats();
+        };
+
+        window.toggleHaulerCarry = function() {
+            haulerCarryActive = !haulerCarryActive;
+            calculateStats();
+        };
+
+        function getActiveElementalAfflictions() {
+            const result = {};
+            ELEMENTAL_KEYS.forEach(el => {
+                const sel = document.getElementById('aff-tier-' + el);
+                result[el] = sel ? sel.value : 'none';
+            });
+            return result;
+        }
+
+        window.cycleElementalTier = function(el) {
+            const sel = document.getElementById('aff-tier-' + el);
+            if (!sel) return;
+            const idx = TIER_ORDER.indexOf(sel.value);
+            sel.value = TIER_ORDER[(idx + 1) % TIER_ORDER.length];
+            onElementalTierChange();
+        };
+
+        window.onElementalTierChange = function() {
+            updateAfflictionDisplay();
+            calculateStats();
+        };
+
+        window.updateAfflictionDisplay = function() {
+            const activeMap = getActiveElementalAfflictions();
+            const readout = document.getElementById('elemental-effect-readout');
+            const countPill = document.getElementById('active-elem-count-pill');
+
+            let activeLines = [];
+            ELEMENTAL_KEYS.forEach(el => {
+                const tier = activeMap[el] || 'none';
+                const row = document.getElementById('el-row-' + el);
+                const info = ELEMENTAL_MATRIX[el];
+                if (tier !== 'none') {
+                    row.className = `flex items-center justify-between px-2.5 py-1.5 rounded-lg border transition ${info.rowActiveClass}`;
+                    activeLines.push(`<div class="leading-snug"><strong class="text-amber-300 uppercase">${info.icon} ${info.name}:</strong> ${info[tier]}</div>`);
+                } else {
+                    row.className = "flex items-center justify-between bg-zinc-950 px-2.5 py-1.5 rounded-lg border border-zinc-800 transition";
+                }
+            });
+
+            if (countPill) {
+                countPill.innerText = `${activeLines.length} Active`;
+                countPill.className = activeLines.length > 0
+                    ? "text-[9px] bg-amber-500 text-zinc-950 px-1.5 py-0.5 rounded font-extrabold mono"
+                    : "text-[9px] bg-zinc-800 text-zinc-400 px-1.5 py-0.5 rounded font-bold mono";
+            }
+
+            if (activeLines.length === 0) {
+                readout.innerHTML = `No active Elemental Afflictions. Set any element above to Low, Mid, High, or Legendary.`;
+                readout.className = "bg-zinc-950 border border-zinc-800 rounded p-2 text-[11px] text-zinc-400 space-y-1 max-h-32 overflow-y-auto";
+            } else {
+                readout.innerHTML = activeLines.join('');
+                readout.className = "bg-amber-950/30 border border-amber-600/60 rounded p-2 text-[11px] text-amber-100 font-medium space-y-1 max-h-32 overflow-y-auto";
+            }
+        };
+
+        window.clearAllAfflictions = function() {
+            ELEMENTAL_KEYS.forEach(el => {
+                const sel = document.getElementById('aff-tier-' + el);
+                if (sel) sel.value = 'none';
+            });
+            document.getElementById('status-disease').checked = false;
+            document.getElementById('status-poison').checked = false;
+            document.getElementById('poison-stacks').value = 0;
+            document.getElementById('status-bleed').checked = false;
+            document.getElementById('status-sunder').checked = false;
+            updateAfflictionDisplay();
+            calculateStats();
+        };
+
+        // Master Calculation Engine
+        window.calculateStats = function() {
+            const str = Math.min(20, Math.max(1, parseInt(document.getElementById('attr-str').value) || 1));
+            const dex = Math.min(20, Math.max(1, parseInt(document.getElementById('attr-dex').value) || 1));
+            const con = Math.min(20, Math.max(1, parseInt(document.getElementById('attr-con').value) || 1));
+            const wis = Math.min(20, Math.max(1, parseInt(document.getElementById('attr-wis').value) || 1));
+            const int = Math.min(20, Math.max(1, parseInt(document.getElementById('attr-int').value) || 1));
+            const height = parseInt(document.getElementById('op-height').value) || 5;
+            const level = parseInt(document.getElementById('op-level').value) || 0;
+            const race = document.getElementById('op-race').value;
+            const opClass = document.getElementById('op-class').value;
+
+            document.getElementById('str-val-badge').innerText = str;
+            document.getElementById('dex-val-badge').innerText = dex;
+            document.getElementById('con-val-badge').innerText = con;
+            document.getElementById('wis-val-badge').innerText = wis;
+            document.getElementById('int-val-badge').innerText = int;
+
+            // Budget Audit
+            const expectedBudget = 9 + (level * 4);
+            const allocated = str + dex + con + wis + int;
+            document.getElementById('stat-budget-audit').innerText = `Allocated: ${allocated} / ${expectedBudget} pts (Lvl ${level})`;
+
+            // Race Perks
+            const raceAP = (race === 'lagomorph') ? 1 : 0;
+            const raceDR = (race === 'saurian') ? 3 : 0;
+            const raceBD = (race === 'arthropod') ? 6 : 0;
+            const raceLabels = {
+                lagomorph: "Lagomorph: +1 Base AP",
+                human: "Pureborn Human: +1d6 Trade",
+                saurian: "Saurian: +3 Natural DR",
+                avian: "Avian: Flight Speed",
+                arthropod: "Arthropod: +6 Bone Density"
+            };
+            document.getElementById('race-perk-badge').innerText = raceLabels[race] || "";
+
+            // 1. STR Derived
+            const strMelee = Math.floor(str / 2);
+            const strRegen = Math.floor(str / 5);
+            const strBoneBonus = Math.floor(str / 5);
+            const sbCarryBonus = Math.max(1, level * 2);
+            const haulerCarryBonus = str * 2;
+
+            document.getElementById('sb-bonus-preview').innerText = `+${sbCarryBonus} lbs`;
+            document.getElementById('hauler-bonus-preview').innerText = `+${haulerCarryBonus} lbs`;
+
+            let weightCap = (str * 2) + height
+                + (shieldBearerCarryActive ? sbCarryBonus : 0)
+                + (haulerCarryActive ? haulerCarryBonus : 0);
+
+            // Toggle UI styling
+            const sbBtn = document.getElementById('shield-bearer-btn');
+            const sbPill = document.getElementById('sb-status-pill');
+            if (shieldBearerCarryActive) {
+                sbBtn.className = "w-full py-2 px-3 rounded-xl border border-sky-500 bg-sky-950/40 flex items-center justify-between transition";
+                sbPill.className = "text-[9px] font-extrabold uppercase px-2 py-0.5 rounded bg-sky-500 text-zinc-950";
+                sbPill.innerText = `+${sbCarryBonus} LBS`;
+            } else {
+                sbBtn.className = "w-full py-2 px-3 rounded-xl border border-zinc-700 bg-zinc-900 hover:bg-zinc-800 flex items-center justify-between transition";
+                sbPill.className = "text-[9px] font-extrabold uppercase px-2 py-0.5 rounded bg-zinc-800 text-zinc-400 border border-zinc-700";
+                sbPill.innerText = "OFF";
+            }
+
+            const haulerBtn = document.getElementById('hauler-mule-btn');
+            const haulerPill = document.getElementById('hauler-status-pill');
+            if (haulerCarryActive) {
+                haulerBtn.className = "w-full py-2 px-3 rounded-xl border border-emerald-500 bg-emerald-950/40 flex items-center justify-between transition";
+                haulerPill.className = "text-[9px] font-extrabold uppercase px-2 py-0.5 rounded bg-emerald-500 text-zinc-950";
+                haulerPill.innerText = `+${haulerCarryBonus} LBS`;
+            } else {
+                haulerBtn.className = "w-full py-2 px-3 rounded-xl border border-zinc-700 bg-zinc-900 hover:bg-zinc-800 flex items-center justify-between transition";
+                haulerPill.className = "text-[9px] font-extrabold uppercase px-2 py-0.5 rounded bg-zinc-800 text-zinc-400 border border-zinc-700";
+                haulerPill.innerText = "OFF";
+            }
+
+            document.getElementById('derived-strmelee').innerText = `+${strMelee} / +${strMelee} HP`;
+            document.getElementById('derived-strregen').innerText = `${strRegen} HP / +${strBoneBonus} BD`;
+            document.getElementById('derived-weight').innerText = `${weightCap} lbs`;
+            document.getElementById('max-weight-inline').innerText = weightCap;
+
+            // Encumbrance Check (-5 ft Non-Combat Move per 2 lbs over)
+            const carried = parseInt(document.getElementById('carried-weight').value) || 0;
+            const overWeight = Math.max(0, carried - weightCap);
+            const encPenalty = Math.floor(overWeight / 2) * 5;
+            const encBadge = document.getElementById('encumbrance-badge');
+            if (overWeight > 0) {
+                encBadge.innerText = `Overweight (-${encPenalty} ft Init)`;
+                encBadge.className = "text-[10px] bg-red-950/80 text-red-300 border border-red-700 px-2 py-0.5 rounded font-bold";
+            } else {
+                encBadge.innerText = "Unencumbered";
+                encBadge.className = "text-[10px] bg-emerald-950/70 text-emerald-300 border border-emerald-700/50 px-2 py-0.5 rounded font-bold";
+            }
+
+            // Retrieve Slotted Core Stat Multipliers & Active Multi-Elemental Afflictions
+            const coreMults = getCoreMultipliers();
+            const elemAffs = getActiveElementalAfflictions();
+
+            // 2. DEX Derived (With Core Movement Multiplier & Cold/Wind/Earth Movement Lock/Reduction)
+            const baseNonCombatMove = Math.max(0, (dex * 2) + height - encPenalty);
+            let baseCombatMove = Math.floor(dex / 2) + height;
+            if (opClass === 'The Kaiha') {
+                baseCombatMove = baseNonCombatMove + (level >= 15 ? 5 : 0);
+            } else if (opClass === 'Arcane Weaver') {
+                baseCombatMove += 5;
+            } else if (opClass === 'Syndicate Shade') {
+                baseCombatMove += 5 + (level >= 10 ? 5 : 0) + (level >= 20 ? 5 : 0);
+            }
+
+            const nonCombatMove = baseNonCombatMove * coreMults.Movement;
+            let combatMove = baseCombatMove * coreMults.Movement;
+
+            // Apply Cold / Wind / Earth movement status penalties
+            let moveLockedZero = false;
+            if (elemAffs.cold === 'high' || elemAffs.cold === 'legendary' ||
+                elemAffs.wind === 'legendary' ||
+                elemAffs.earth === 'high' || elemAffs.earth === 'legendary') {
+                moveLockedZero = true;
+            }
+            if (moveLockedZero) {
+                combatMove = 0;
+            } else if (elemAffs.cold === 'mid') {
+                combatMove = Math.max(0, combatMove - 10);
+            } else if (elemAffs.cold === 'low') {
+                combatMove = Math.max(0, combatMove - 5);
+            }
+
+            const combatSq = Math.floor(combatMove / 5);
+            const finesseBonus = Math.floor(dex / 2);
+            const dexAcc = Math.floor(dex / 5);
+            const reflex = Math.floor(dex / 5);
+            const breathTurns = Math.floor(dex / 5);
+
+            document.getElementById('derived-cmove').innerText = `${combatMove} ft (${combatSq} sq)${coreMults.Movement > 1 ? ' [×' + coreMults.Movement + ']' : ''}${moveLockedZero ? ' [LOCKED]' : ''}`;
+            document.getElementById('derived-ncmove').innerText = `${nonCombatMove} ft${coreMults.Movement > 1 ? ' [×' + coreMults.Movement + ']' : ''}`;
+            document.getElementById('derived-dexfinesse').innerText = `+${finesseBonus} / ${reflex} / ${breathTurns}t`;
+
+            // 3. CON Derived (With Core HP Multiplier: e.g. 25 Base HP * 5pt S-Core = 125 Max HP)
+            const baseFleshHP = (con * 2) + height;
+            const hpBonus = parseInt(document.getElementById('hp-bonus-input').value) || 0;
+            const unmultipliedMaxHP = baseFleshHP + strMelee + hpBonus;
+            const totalMaxHP = unmultipliedMaxHP * coreMults.HP;
+
+            const hpMultBadge = document.getElementById('hp-core-mult-badge');
+            if (coreMults.HP > 1) {
+                hpMultBadge.classList.remove('hidden');
+                hpMultBadge.innerText = `×${coreMults.HP} Core`;
+            } else {
+                hpMultBadge.classList.add('hidden');
+            }
+
+            const sunderActive = document.getElementById('status-sunder').checked;
+            const diseaseActive = document.getElementById('status-disease').checked;
+            const poisonActive = document.getElementById('status-poison').checked;
+            const poisonStacks = parseInt(document.getElementById('poison-stacks').value) || 0;
+
+            let rawBD = (opClass === 'Skeleton Lich')
+                ? 19
+                : Math.min(19, Math.floor(con / 2) + strBoneBonus + raceBD);
+            if (sunderActive) rawBD = Math.floor(rawBD / 2);
+
+            const diseaseResist = Math.floor(con / 5);
+            const permadeathLimit = -Math.floor(((con * 2) + Math.floor(str / 5) + height) / 2);
+
+            document.getElementById('derived-fleshhp').innerText = `${baseFleshHP} HP`;
+            document.getElementById('derived-bonedensity').innerText = `${rawBD} BD`;
+            document.getElementById('defense-bd-readout').innerText = `${rawBD} BD`;
+            document.getElementById('derived-dres').innerText = `+${diseaseResist} DR`;
+            document.getElementById('derived-permadeath').innerText = `${permadeathLimit} HP`;
+
+            document.getElementById('hp-base-sub').innerText = baseFleshHP;
+            document.getElementById('hp-mass-sub').innerText = strMelee;
+            document.getElementById('max-hp-display').innerText = totalMaxHP;
+            document.getElementById('regen-btn-val').innerText = `+${strRegen}`;
+
+            // 4. WIS Derived (With Core AP Multiplier)
+            const baseWisAP = Math.floor(wis / 5) + raceAP;
+            const wisAP = baseWisAP * coreMults.AP;
+            const blindAcc = Math.floor(wis / 5) + (wis >= 20 ? 5 : 0);
+            document.getElementById('derived-ap').innerText = `${wisAP} AP${coreMults.AP > 1 ? ' (×' + coreMults.AP + ')' : ''}`;
+            document.getElementById('max-ap-display').innerText = wisAP;
+            document.getElementById('derived-perception').innerText = wis;
+            document.getElementById('derived-blindacc').innerText = `+${blindAcc}`;
+
+            // 5. INT Derived & Mana Capacity (With Core Mana Multiplier)
+            const baseMana = int * 2;
+            const manaBonus = parseInt(document.getElementById('mana-bonus-input').value) || 0;
+            const unmultipliedMana = baseMana + manaBonus;
+            const totalMaxMana = unmultipliedMana * coreMults.Mana;
+
+            const manaMultBadge = document.getElementById('mana-core-mult-badge');
+            if (coreMults.Mana > 1) {
+                manaMultBadge.classList.remove('hidden');
+                manaMultBadge.innerText = `×${coreMults.Mana} Core`;
+            } else {
+                manaMultBadge.classList.add('hidden');
+            }
+
+            const mentalReflex = Math.floor(int / 5);
+            const meditateRegen = Math.floor(int / 5);
+
+            document.getElementById('derived-mana').innerText = `${totalMaxMana} Mana${coreMults.Mana > 1 ? ' (×' + coreMults.Mana + ')' : ''}`;
+            document.getElementById('mana-base-sub').innerText = baseMana;
+            document.getElementById('max-mana-display').innerText = totalMaxMana;
+            document.getElementById('derived-mreflex').innerText = `${int} Wt / ${mentalReflex}`;
+            document.getElementById('derived-surge').innerText = `+${int} / +${meditateRegen}`;
+            document.getElementById('surge-btn-val').innerText = int;
+            document.getElementById('med-btn-val').innerText = meditateRegen;
+
+            // Evasion & Accuracy (With Lightning Shock/Arc -6 or Smite/Tempest -12 & Cold Incase Evasion Lock)
+            let tangible = (elemAffs.cold === 'legendary') ? 0 : Math.floor(dex / 2);
+            if (diseaseActive) tangible -= 2;
+            if (sunderActive) tangible -= 5;
+
+            let lightningAccPenalty = 0;
+            if (elemAffs.lightning === 'low' || elemAffs.lightning === 'mid') lightningAccPenalty = 6;
+            else if (elemAffs.lightning === 'high' || elemAffs.lightning === 'legendary') lightningAccPenalty = 12;
+
+            const totalAcc = dexAcc + blindAcc - lightningAccPenalty;
+            const atkRollBonus = Math.floor(dex / 4) + totalAcc;
+            const pathogenThreshold = tangible + diseaseResist;
+
+            document.getElementById('derived-tangible').innerText = tangible;
+            const signStr = atkRollBonus >= 0 ? `+ ${atkRollBonus}` : `- ${Math.abs(atkRollBonus)}`;
+            document.getElementById('derived-atkroll').innerText = `1d20 ${signStr}`;
+            document.getElementById('derived-pathogen').innerText = `${pathogenThreshold} vs Disease`;
+
+            // Disease & Poison Banners
+            const disBanner = document.getElementById('disease-alert-banner');
+            const disCard = document.getElementById('disease-card');
+            if (diseaseActive) {
+                disBanner.classList.remove('hidden');
+                disCard.className = "bg-red-950/60 p-2 rounded-lg border-2 border-red-500 flex items-center justify-between transition";
+            } else {
+                disBanner.classList.add('hidden');
+                disCard.className = "bg-zinc-900/90 p-2 rounded-lg border border-zinc-800 flex items-center justify-between transition";
+            }
+
+            const poiBanner = document.getElementById('poison-alert-banner');
+            const poiCard = document.getElementById('poison-card');
+            const lethalThreshold = level * 2;
+            document.getElementById('poison-lethal-badge').innerText = `Stacks: ${poisonStacks}${poisonStacks > lethalThreshold ? ' [LETHAL DROP > ' + lethalThreshold + '!]' : ' (Lethal > ' + lethalThreshold + ')'}`;
+
+            if (poisonActive || poisonStacks > 0) {
+                poiBanner.classList.remove('hidden');
+                poiCard.className = "bg-lime-950/60 p-2 rounded-lg border-2 border-lime-500 flex items-center justify-between gap-2 transition";
+            } else {
+                poiBanner.classList.add('hidden');
+                poiCard.className = "bg-zinc-900/90 p-2 rounded-lg border border-zinc-800 flex items-center justify-between gap-2 transition";
+            }
+
+            // Mark Calculations
+            const isMarked = document.getElementById('mark-active-toggle').checked;
+            const markEl = document.getElementById('mark-element-select').value;
+            const oppEl = OPPOSING_ELEMENT_MAP[markEl] || "Opposing Element";
+
+            document.getElementById('mark-pos-badge').innerText = `+${level} ${markEl} Dmg`;
+            document.getElementById('mark-pos-detail').innerHTML = `Adds <strong>+${level} ${markEl}</strong> damage (your Level) to your attack damage.`;
+            document.getElementById('mark-neg-badge').innerText = `+${level} ${oppEl} Taken`;
+            document.getElementById('mark-neg-detail').innerHTML = `Receive <strong>+${level} additional ${oppEl} damage</strong> (opposing element equal to your Level).`;
+
+            const markDot = document.getElementById('mark-active-dot');
+            const markHeaderPill = document.getElementById('active-mark-header-pill');
+            if (isMarked) {
+                markDot.classList.remove('hidden');
+                markHeaderPill.classList.remove('hidden');
+                markHeaderPill.innerText = `MARK: +${level} ${markEl.toUpperCase()}`;
+            } else {
+                markDot.classList.add('hidden');
+                markHeaderPill.classList.add('hidden');
+            }
+
+            // Defense Totals (Armor + Shield + Saurian + Hauler + Juggernaut Iron Frame)
+            const armorDR = parseInt(document.getElementById('armor-dr').value) || 0;
+            let shieldDR = parseInt(document.getElementById('shield-dr').value) || 0;
+            if (sunderActive) shieldDR = Math.floor(shieldDR / 2);
+            const haulerDR = haulerCarryActive ? 2 : 0;
+            const juggDR = (opClass === 'Juggernaut') ? (level >= 20 ? 6 : (level >= 5 ? 4 : 2)) : 0;
+            const totalDR = armorDR + shieldDR + raceDR + haulerDR + juggDR;
+            document.getElementById('total-dr-badge').innerText = `${totalDR} DR`;
+
+            renderWeapons(coreMults);
+            renderCores({
+                unmultipliedMaxHP,
+                totalMaxHP,
+                baseCombatMove,
+                combatMove,
+                baseNonCombatMove,
+                nonCombatMove,
+                baseWisAP,
+                wisAP,
+                unmultipliedMana,
+                totalMaxMana,
+                coreMults
+            });
+            updateVitalsBars();
+            scheduleSync();
+        };
+
+        window.updateVitalsBars = function() {
+            const curHP = parseInt(document.getElementById('current-hp').value) || 0;
+            const maxHP = parseInt(document.getElementById('max-hp-display').innerText) || 1;
+            document.getElementById('hp-bar').style.width = Math.max(0, Math.min(100, (curHP / maxHP) * 100)) + '%';
+
+            const curMana = parseInt(document.getElementById('current-mana').value) || 0;
+            const maxMana = parseInt(document.getElementById('max-mana-display').innerText) || 1;
+            document.getElementById('mana-bar').style.width = Math.max(0, Math.min(100, (curMana / maxMana) * 100)) + '%';
+
+            const curCore = parseInt(document.getElementById('current-corehp').value) || 0;
+            const maxCore = parseInt(document.getElementById('max-corehp').value) || 1;
+            document.getElementById('core-bar').style.width = Math.max(0, Math.min(100, (curCore / maxCore) * 100)) + '%';
+        };
+
+        window.modifyHP = function(delta) {
+            const diseaseActive = document.getElementById('status-disease').checked;
+            const poisonActive = document.getElementById('status-poison').checked;
+            const poisonStacks = parseInt(document.getElementById('poison-stacks').value) || 0;
+            const hpInput = document.getElementById('current-hp');
+            let cur = parseInt(hpInput.value) || 0;
+            const max = parseInt(document.getElementById('max-hp-display').innerText) || 30;
+
+            if (delta > 0) {
+                if (diseaseActive) {
+                    showToast("DISEASE ACTIVE: CAN'T HEAL! Healing blocked.");
+                    return;
+                }
+                if (poisonActive || poisonStacks > 0) {
+                    cur -= delta;
+                    hpInput.value = cur;
+                    updateVitalsBars();
+                    scheduleSync();
+                    showToast(`POISON REACTION! Healing dealt ${delta} damage instead!`);
+                    return;
+                }
+            }
+            hpInput.value = Math.min(max, cur + delta);
+            if (parseInt(hpInput.value) <= 0 && document.getElementById('coma-stage').value === 'Conscious') {
+                document.getElementById('coma-stage').value = '72 HR';
+            }
+            updateVitalsBars();
+            scheduleSync();
+        };
+
+        window.triggerRegenTick = function() {
+            const str = parseInt(document.getElementById('attr-str').value) || 1;
+            modifyHP(Math.floor(str / 5));
+        };
+
+        window.consumeSupply = function() {
+            const supInput = document.getElementById('inv-supplies');
+            let count = parseInt(supInput.value) || 0;
+            if (count <= 0) {
+                showToast("No Survival Supplies remaining!");
+                return;
+            }
+            supInput.value = count - 1;
+            const str = parseInt(document.getElementById('attr-str').value) || 1;
+            modifyHP(2 + Math.floor(str / 5));
+        };
+
+        window.modifyMana = function(delta) {
+            const manaInput = document.getElementById('current-mana');
+            let cur = parseInt(manaInput.value) || 0;
+            const max = parseInt(document.getElementById('max-mana-display').innerText) || 20;
+            manaInput.value = Math.max(0, Math.min(max, cur + delta));
+            updateVitalsBars();
+            scheduleSync();
+        };
+
+        window.modifyAP = function(delta) {
+            const apInput = document.getElementById('current-ap');
+            let cur = parseInt(apInput.value) || 0;
+            apInput.value = Math.max(0, cur + delta);
+            scheduleSync();
+        };
+
+        window.triggerAPSurge = function() {
+            const apInput = document.getElementById('current-ap');
+            let curAP = parseInt(apInput.value) || 0;
+            if (curAP < 1) {
+                showToast("0 AP! Cannot trigger AP Surge.");
+                return;
+            }
+            apInput.value = curAP - 1;
+            const intVal = parseInt(document.getElementById('attr-int').value) || 1;
+            modifyMana(intVal);
+            showToast(`AP Surge: -1 AP ➔ +${intVal} Mana restored.`);
+        };
+
+        window.triggerMeditation = function() {
+            const intVal = parseInt(document.getElementById('attr-int').value) || 1;
+            const gain = Math.floor(intVal / 5);
+            modifyMana(gain);
+            showToast(`Focused Meditation: +${gain} Mana (Warning: 4x incoming damage until next turn!).`);
+        };
+
+        // Weapons & Cores Rendering
+        window.renderWeapons = function(coreMults) {
+            const multData = coreMults || getCoreMultipliers();
+            const container = document.getElementById('weapons-container');
+            const strMod = Math.floor((parseInt(document.getElementById('attr-str').value) || 1) / 2);
+            const dexMod = Math.floor((parseInt(document.getElementById('attr-dex').value) || 1) / 2);
+            const opClass = document.getElementById('op-class').value;
+            const isMarked = document.getElementById('mark-active-toggle').checked;
+            const level = parseInt(document.getElementById('op-level').value) || 0;
+            const markEl = document.getElementById('mark-element-select').value;
+            const sunderPenalty = document.getElementById('status-sunder').checked ? -5 : 0;
+
+            container.innerHTML = '';
+            weaponsList.forEach((w, idx) => {
+                let statBonus = 0;
+                let diceStr = "+ 1d6";
+                if (opClass === 'The Kaiha') {
+                    statBonus = 3; // Focus +3 flat melee bonus, no muscle modifier
+                    diceStr = "+ 1d6";
+                } else if (w.type === 'Brute') {
+                    statBonus = strMod;
+                    diceStr = "";
+                } else if (w.type === 'Finesse' || w.type === 'Bow') {
+                    statBonus = dexMod;
+                    diceStr = "+ 1d6";
+                } else if (w.type === 'Gun') {
+                    statBonus = 0;
+                    diceStr = "+ 1d6";
+                }
+
+                const weaponElemBase = parseInt(w.elemBase) || 0;
+                const multipliedWeaponElem = weaponElemBase * multData.Elemental;
+                const totalCoreElem = multipliedWeaponElem + multData.elemBonusTotal;
+
+                const totalFlat = Math.max(0, (parseInt(w.baseDmg) || 0) + statBonus + sunderPenalty);
+                const elemStr = totalCoreElem > 0 ? ` + ${totalCoreElem} Elem${multData.Elemental > 1 ? ' (×' + multData.Elemental + ')' : ''}` : '';
+                const markStr = isMarked ? ` + ${level} ${markEl}` : '';
+
+                const card = document.createElement('div');
+                card.className = "bg-zinc-900/90 p-2 rounded-xl border border-zinc-800 flex flex-col gap-1 text-xs";
+                card.innerHTML = `
+                    <div class="flex justify-between items-center gap-1.5">
+                        <input type="text" value="${w.name}" onchange="updateWeaponField(${idx}, 'name', this.value)" class="bg-transparent font-bold text-zinc-100 flex-1 focus:outline-none">
+                        <select onchange="updateWeaponField(${idx}, 'type', this.value)" class="bg-zinc-950 text-[10px] text-amber-300 border border-zinc-700 rounded px-1.5 py-0.5 font-bold">
+                            <option value="Finesse" ${w.type==='Finesse'?'selected':''}>Finesse</option>
+                            <option value="Brute" ${w.type==='Brute'?'selected':''}>Brute</option>
+                            <option value="Bow" ${w.type==='Bow'?'selected':''}>Draw Bow</option>
+                            <option value="Gun" ${w.type==='Gun'?'selected':''}>Firearm</option>
+                        </select>
+                        <button onclick="removeWeaponSlot(${idx})" class="text-zinc-500 hover:text-red-400 px-1"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                    <div class="flex justify-between items-center text-[11px] text-zinc-400">
+                        <div class="flex items-center gap-1.5">
+                            <span>Base:</span>
+                            <input type="number" value="${w.baseDmg}" onchange="updateWeaponField(${idx}, 'baseDmg', parseInt(this.value)||0)" class="w-9 bg-zinc-950 text-center text-sky-300 font-bold rounded border border-zinc-800 mono">
+                            <span>Elem:</span>
+                            <input type="number" value="${w.elemBase || 0}" onchange="updateWeaponField(${idx}, 'elemBase', parseInt(this.value)||0)" class="w-9 bg-zinc-950 text-center text-amber-300 font-bold rounded border border-zinc-800 mono" title="Base Elemental Damage (Multiplied by Elemental Core Points)">
+                        </div>
+                        <span class="font-bold text-amber-300 mono text-[11px]">${totalFlat} ${diceStr}${elemStr}${markStr}</span>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        };
+
+        window.updateWeaponField = function(idx, field, val) {
+            weaponsList[idx][field] = val;
+            calculateStats();
+        };
+
+        window.removeWeaponSlot = function(idx) {
+            weaponsList.splice(idx, 1);
+            calculateStats();
+        };
+
+        window.addWeaponSlot = function() {
+            weaponsList.push({ name: "Forged Armament", type: "Finesse", baseDmg: 6, elemBase: 0, sockets: 2 });
+            calculateStats();
+        };
+
+        window.renderCores = function(statContext) {
+            const container = document.getElementById('core-subtab-slots');
+            const breakdownList = document.getElementById('core-mult-breakdown-list');
+            container.innerHTML = '';
+            let totalPts = 0;
+
+            const baseHP = statContext ? statContext.unmultipliedMaxHP : (parseInt(document.getElementById('max-hp-display').innerText) || 25);
+            const baseCMove = statContext ? statContext.baseCombatMove : 9;
+            const baseNCMove = statContext ? statContext.baseNonCombatMove : 21;
+            const baseAP = statContext ? statContext.baseWisAP : 2;
+            const baseMana = statContext ? statContext.unmultipliedMana : 10;
+
+            coresList.forEach((c, idx) => {
+                const pts = parseInt(c.gradePoints) || 0;
+                totalPts += pts;
+                const modTarget = c.modTarget || 'HP';
+
+                // Live Preview Equation for this specific Core Card
+                let liveEquation = "Inactive (0pt)";
+                if (pts > 0) {
+                    if (modTarget === 'HP') {
+                        liveEquation = `Base HP (${baseHP}) × ${pts}pt = ${baseHP * pts} Total HP`;
+                    } else if (modTarget === 'Movement') {
+                        liveEquation = `Combat (${baseCMove}ft) × ${pts}pt = ${baseCMove * pts}ft | Init (${baseNCMove}ft) × ${pts}pt = ${baseNCMove * pts}ft`;
+                    } else if (modTarget === 'AP') {
+                        liveEquation = `Base AP (${baseAP}) × ${pts}pt = ${baseAP * pts} Total AP`;
+                    } else if (modTarget === 'Mana') {
+                        liveEquation = `Base Mana (${baseMana}) × ${pts}pt = ${baseMana * pts} Total Mana`;
+                    } else if (modTarget === 'Elemental') {
+                        const baseEl = parseInt(c.elemBase) || 1;
+                        liveEquation = `Elem Base (${baseEl}) × ${pts}pt = +${baseEl * pts} ${c.elemType || 'Elemental'} Dmg (& ×${pts} Wpn Elem)`;
+                    } else {
+                        liveEquation = `Passive Socket (${pts} Core Pts)`;
+                    }
+                }
+
+                const card = document.createElement('div');
+                card.className = "bg-zinc-900/95 p-2 rounded-xl border border-zinc-800 flex flex-col gap-1.5 text-xs";
+                card.innerHTML = `
+                    <div class="flex justify-between items-center gap-1.5">
+                        <div class="flex items-center gap-1.5 flex-1">
+                            <i class="fa-solid fa-gem text-amber-400 text-[11px]"></i>
+                            <input type="text" value="${c.name}" onchange="updateCoreField(${idx}, 'name', this.value)" class="bg-transparent font-bold text-zinc-100 w-full focus:outline-none text-[11px]">
+                        </div>
+                        <select onchange="updateCoreField(${idx}, 'gradePoints', parseInt(this.value))" class="bg-zinc-950 text-sky-300 border border-zinc-700 rounded px-1.5 py-0.5 text-[10px] font-extrabold mono">
+                            <option value="0" ${pts===0?'selected':''}>None (0pt)</option>
+                            <option value="1" ${pts===1?'selected':''}>D-Grade (1pt)</option>
+                            <option value="2" ${pts===2?'selected':''}>C-Grade (2pt)</option>
+                            <option value="3" ${pts===3?'selected':''}>B-Grade (3pt)</option>
+                            <option value="4" ${pts===4?'selected':''}>A-Grade (4pt)</option>
+                            <option value="5" ${pts===5?'selected':''}>S-Grade (5pt)</option>
+                        </select>
+                        <button onclick="removeCoreSlot(${idx})" class="text-zinc-500 hover:text-red-400 px-1"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+
+                    <div class="flex flex-wrap items-center justify-between gap-1.5 pt-1 border-t border-zinc-800/80">
+                        <div class="flex items-center gap-1">
+                            <span class="text-[9px] text-zinc-400 uppercase font-bold">Mod Target:</span>
+                            <select onchange="updateCoreField(${idx}, 'modTarget', this.value)" class="bg-zinc-950 text-amber-300 border border-amber-600/50 rounded px-1.5 py-0.5 text-[10px] font-bold">
+                                <option value="HP" ${modTarget==='HP'?'selected':''}>HP (×Pts Multiplier)</option>
+                                <option value="Movement" ${modTarget==='Movement'?'selected':''}>Movement (×Pts Multiplier)</option>
+                                <option value="AP" ${modTarget==='AP'?'selected':''}>AP Pool (×Pts Multiplier)</option>
+                                <option value="Mana" ${modTarget==='Mana'?'selected':''}>Mana Pool (×Pts Multiplier)</option>
+                                <option value="Elemental" ${modTarget==='Elemental'?'selected':''}>Boost Elemental Dmg (×Pts)</option>
+                                <option value="None" ${modTarget==='None'?'selected':''}>Socket Only (No Mult)</option>
+                            </select>
+                        </div>
+
+                        ${modTarget === 'Elemental' ? `
+                        <div class="flex items-center gap-1">
+                            <span class="text-[9px] text-zinc-400">Base:</span>
+                            <input type="number" value="${c.elemBase ?? 2}" min="1" onchange="updateCoreField(${idx}, 'elemBase', parseInt(this.value)||1)" class="w-9 bg-zinc-950 text-center text-amber-300 font-bold rounded border border-zinc-700 text-[10px] mono">
+                            <select onchange="updateCoreField(${idx}, 'elemType', this.value)" class="bg-zinc-950 text-purple-300 border border-zinc-700 rounded px-1 py-0.5 text-[9px] font-bold">
+                                <option value="Fire" ${c.elemType==='Fire'?'selected':''}>Fire</option>
+                                <option value="Cold" ${c.elemType==='Cold'?'selected':''}>Cold</option>
+                                <option value="Lightning" ${c.elemType==='Lightning'?'selected':''}>Lightning</option>
+                                <option value="Wind" ${c.elemType==='Wind'?'selected':''}>Wind</option>
+                                <option value="Earth" ${c.elemType==='Earth'?'selected':''}>Earth</option>
+                                <option value="Light" ${c.elemType==='Light'?'selected':''}>Light</option>
+                                <option value="Dark" ${c.elemType==='Dark'?'selected':''}>Dark</option>
+                            </select>
+                        </div>
+                        ` : ''}
+                    </div>
+
+                    <div class="bg-zinc-950 px-2 py-1 rounded border border-zinc-800/90 text-[10px] text-emerald-300 font-semibold mono flex items-center justify-between">
+                        <span><i class="fa-solid fa-wand-magic-sparkles text-amber-400 mr-1"></i>${liveEquation}</span>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            document.getElementById('core-points-sum').innerText = `(${totalPts} Pts)`;
+
+            // Populate Sub-Tab B: Core Stat Multipliers Summary
+            if (breakdownList && statContext) {
+                const m = statContext.coreMults;
+                breakdownList.innerHTML = `
+                    <div class="flex justify-between items-center bg-zinc-900 p-1.5 rounded border border-zinc-800">
+                        <span class="text-zinc-300 font-bold">❤️ Max Flesh HP:</span>
+                        <span class="mono text-red-300 font-bold">${statContext.unmultipliedMaxHP} Base × ${m.HP}pt = <strong>${statContext.totalMaxHP} HP</strong></span>
+                    </div>
+                    <div class="flex justify-between items-center bg-zinc-900 p-1.5 rounded border border-zinc-800">
+                        <span class="text-zinc-300 font-bold">👟 Combat / Init Move:</span>
+                        <span class="mono text-emerald-300 font-bold">${statContext.baseCombatMove}ft / ${statContext.baseNonCombatMove}ft × ${m.Movement}pt = <strong>${statContext.combatMove}ft / ${statContext.nonCombatMove}ft</strong></span>
+                    </div>
+                    <div class="flex justify-between items-center bg-zinc-900 p-1.5 rounded border border-zinc-800">
+                        <span class="text-zinc-300 font-bold">⚡ Max AP Pool:</span>
+                        <span class="mono text-purple-300 font-bold">${statContext.baseWisAP} Base × ${m.AP}pt = <strong>${statContext.wisAP} AP</strong></span>
+                    </div>
+                    <div class="flex justify-between items-center bg-zinc-900 p-1.5 rounded border border-zinc-800">
+                        <span class="text-zinc-300 font-bold">💧 Max Mana Pool:</span>
+                        <span class="mono text-sky-300 font-bold">${statContext.unmultipliedMana} Base × ${m.Mana}pt = <strong>${statContext.totalMaxMana} Mana</strong></span>
+                    </div>
+                    <div class="flex justify-between items-center bg-zinc-900 p-1.5 rounded border border-zinc-800">
+                        <span class="text-zinc-300 font-bold">🔥 Elemental Dmg Boost:</span>
+                        <span class="mono text-amber-300 font-bold">×${m.Elemental} Mult (${m.elemBonusTotal > 0 ? '+' + m.elemBonusTotal + ' Core Elem' : '+0 Flat'})</span>
+                    </div>
+                `;
+            }
+        };
+
+        window.updateCoreField = function(idx, field, val) {
+            coresList[idx][field] = val;
+            calculateStats();
+        };
+
+        window.removeCoreSlot = function(idx) {
+            coresList.splice(idx, 1);
+            calculateStats();
+        };
+
+        window.addCoreSlot = function() {
+            coresList.push({ name: "Slotted Monster Core", gradePoints: 3, modTarget: "HP", elemBase: 2, elemType: "Fire" });
+            calculateStats();
+        };
+
+        // Hunt Insurance Stage 2 Calculator
+        window.calcInsurance = function() {
+            const rate = parseInt(document.getElementById('ins-tier-rate').value) || 10;
+            const targetN = Math.min(20, Math.max(0, parseInt(document.getElementById('ins-target-n').value) || 0));
+            const monsterWis = Math.max(0, parseInt(document.getElementById('ins-monster-wis').value) || 0);
+
+            const totalCC = rate * targetN;
+            const rescuePower = targetN * 5;
+
+            document.getElementById('ins-cost-readout').innerText = `= ${totalCC} CC`;
+            document.getElementById('ins-rescue-power').innerText = `${rescuePower} Power`;
+
+            const badge = document.getElementById('insurance-outcome-badge');
+            if (rescuePower >= monsterWis) {
+                badge.className = "px-3 py-1 rounded-lg text-xs font-black uppercase bg-emerald-950 text-emerald-300 border border-emerald-500";
+                badge.innerText = `RESCUE POWER (${rescuePower}) ≥ MONSTER WIS (${monsterWis}) ➔ CLEAN EXTRACTION`;
+            } else {
+                badge.className = "px-3 py-1 rounded-lg text-xs font-black uppercase bg-red-950 text-red-300 border border-red-500";
+                badge.innerText = `MONSTER WIS (${monsterWis}) > RESCUE POWER (${rescuePower}) ➔ RESCUE OVERWHELMED`;
+            }
+        };
+
+        // Render Live GM Dashboard
+        window.renderGMDashboard = function() {
+            const grid = document.getElementById('gm-operatives-grid');
+            const initStrip = document.getElementById('gm-initiative-strip');
+            const rawEntries = Object.entries(partyRoster);
+            document.getElementById('gm-party-count').innerText = rawEntries.length;
+
+            // Helper to compute or retrieve an operative's exact Non-Combat Movement (Initiative)
+            function getOperativeNonCombatMove(op) {
+                if (typeof op.computedNonCombatMove === 'number' && !isNaN(op.computedNonCombatMove)) {
+                    return op.computedNonCombatMove;
+                }
+                const dex = parseInt(op.dex) || 1;
+                const str = parseInt(op.str) || 1;
+                const height = parseInt(op.height) || 5;
+                const level = parseInt(op.level) || 0;
+                const sbCarry = op.shieldBearerCarryActive ? Math.max(1, level * 2) : 0;
+                const haulerCarry = op.haulerCarryActive ? (str * 2) : 0;
+                const weightCap = (str * 2) + height + sbCarry + haulerCarry;
+                const carried = parseInt(op.carriedWeight) || 0;
+                const overWeight = Math.max(0, carried - weightCap);
+                const encPenalty = Math.floor(overWeight / 2) * 5;
+                const baseNCMove = Math.max(0, (dex * 2) + height - encPenalty);
+
+                let movePts = 0;
+                if (Array.isArray(op.coresList)) {
+                    op.coresList.forEach(c => {
+                        const pts = parseInt(c.gradePoints) || 0;
+                        if (pts > 0 && c.modTarget === 'Movement') movePts += pts;
+                    });
+                }
+                const moveMult = movePts > 0 ? movePts : 1;
+                return baseNCMove * moveMult;
+            }
+
+            // Sort Operatives from Highest Non-Combat Speed to Lowest so GM sees turn order immediately
+            const entries = rawEntries.sort((a, b) => {
+                const initB = getOperativeNonCombatMove(b[1]);
+                const initA = getOperativeNonCombatMove(a[1]);
+                if (initB !== initA) return initB - initA;
+                return (parseInt(b[1].dex) || 0) - (parseInt(a[1].dex) || 0);
+            });
+
+            let phalanxSum = 0;
+            let totalPartyCC = 0;
+            grid.innerHTML = '';
+            if (initStrip) initStrip.innerHTML = '';
+
+            if (entries.length === 0) {
+                if (initStrip) {
+                    initStrip.innerHTML = `<span class="text-xs text-zinc-500 italic">No operatives synced yet. Waiting for party data...</span>`;
+                }
+                grid.innerHTML = `
+                    <div class="col-span-full panel-bg rounded-xl p-8 text-center text-zinc-400">
+                        <i class="fa-solid fa-satellite-dish text-3xl text-sky-400 mb-2"></i>
+                        <p class="font-bold text-sm text-zinc-200">Waiting for Operatives in Room...</p>
+                        <p class="text-xs mt-1">Players automatically appear here when they open the app with the same Room Code or when you import their JSON.</p>
+                    </div>
+                `;
+            }
+
+            entries.forEach(([id, op], rankIdx) => {
+                const wis = parseInt(op.wis) || 1;
+                phalanxSum += wis;
+                totalPartyCC += parseInt(op.cc) || 0;
+
+                const nonCombatSpeed = getOperativeNonCombatMove(op);
+                const combatSpeed = op.computedCombatMove ?? (Math.floor((parseInt(op.dex) || 1) / 2) + (parseInt(op.height) || 5));
+
+                // Populate Top Initiative Turn Order Strip
+                if (initStrip) {
+                    const pill = document.createElement('div');
+                    pill.className = rankIdx === 0
+                        ? "flex items-center gap-2 bg-emerald-950/90 border-2 border-emerald-400 px-3 py-1.5 rounded-xl shadow-md"
+                        : "flex items-center gap-2 bg-zinc-900/95 border border-zinc-700 px-2.5 py-1.5 rounded-xl";
+                    pill.innerHTML = `
+                        <span class="w-5 h-5 rounded-full ${rankIdx === 0 ? 'bg-emerald-400 text-zinc-950' : 'bg-zinc-800 text-zinc-300'} text-[10px] font-black flex items-center justify-center mono">#${rankIdx + 1}</span>
+                        <div>
+                            <span class="text-xs font-extrabold ${rankIdx === 0 ? 'text-white' : 'text-zinc-200'} block leading-none">${op.name || 'Unnamed'}</span>
+                            <span class="text-[9px] text-zinc-400">${op.opClass || 'Operative'}</span>
+                        </div>
+                        <span class="ml-1 px-2 py-0.5 rounded bg-zinc-950 border ${rankIdx === 0 ? 'border-emerald-500 text-emerald-300' : 'border-zinc-800 text-sky-300'} text-xs font-black mono">${nonCombatSpeed} ft</span>
+                    `;
+                    initStrip.appendChild(pill);
+                }
+
+                const curHP = parseInt(op.curHP) || 0;
+                const maxHP = parseInt(op.maxHP) || 18;
+                const hpPct = Math.max(0, Math.min(100, Math.round((curHP / maxHP) * 100)));
+
+                const curMana = parseInt(op.curMana) || 0;
+                const maxMana = parseInt(op.maxMana) || 10;
+                const manaPct = Math.max(0, Math.min(100, Math.round((curMana / maxMana) * 100)));
+
+                const oppEl = OPPOSING_ELEMENT_MAP[op.markElement] || 'Opposing';
+
+                const card = document.createElement('div');
+                card.className = `panel-bg rounded-xl p-4 flex flex-col justify-between gap-3 border ${op.disease ? 'border-red-500' : (op.poison ? 'border-lime-500' : 'border-zinc-700')}`;
+                card.innerHTML = `
+                    <div>
+                        <div class="flex justify-between items-start gap-2">
+                            <div>
+                                <div class="flex items-center gap-1.5">
+                                    <span class="bg-emerald-500/20 border border-emerald-500/50 text-emerald-300 text-[9px] font-black px-1.5 py-0.5 rounded mono">TURN #${rankIdx + 1}</span>
+                                    <span class="text-[10px] font-bold uppercase text-amber-400">${op.opClass || 'Operative'} • ${op.subclass || ''}</span>
+                                </div>
+                                <h4 class="cinzel font-bold text-base text-sky-300 leading-tight mt-0.5">${op.name || 'Unnamed'}</h4>
+                                <span class="text-[10px] text-zinc-400">Player: ${op.player || 'Unknown'} | Height: ${op.height || 5}'</span>
+                            </div>
+                            <div class="text-right flex flex-col items-end gap-1">
+                                <div class="bg-emerald-950/90 border border-emerald-500/70 px-2.5 py-1 rounded-lg text-right shadow">
+                                    <span class="text-[8px] font-extrabold uppercase tracking-wider text-emerald-400 block leading-none">Non-Combat (Init)</span>
+                                    <strong class="text-sm font-black text-emerald-300 mono">${nonCombatSpeed} ft</strong>
+                                </div>
+                                <div class="flex items-center gap-1">
+                                    <span class="bg-zinc-900 border border-zinc-700 text-sky-300 px-1.5 py-0.5 rounded text-[9px] font-bold mono" title="Combat Movement">Combat: ${combatSpeed} ft</span>
+                                    <span class="bg-amber-950 border border-amber-600/60 text-amber-300 px-1.5 py-0.5 rounded text-[10px] font-extrabold mono">LVL ${op.level ?? 0}</span>
+                                </div>
+                                ${op.unspentPoints > 0 ? `<span class="block text-[9px] text-amber-400 font-bold">+${op.unspentPoints} Unspent Pts</span>` : ''}
+                            </div>
+                        </div>
+
+                        <!-- Vitals Bars -->
+                        <div class="mt-3 space-y-2 text-xs">
+                            <div>
+                                <div class="flex justify-between text-[11px] font-bold">
+                                    <span class="text-red-400">Flesh HP (${op.comaStage || 'Conscious'})</span>
+                                    <span class="mono text-zinc-200">${curHP} / ${maxHP} HP (BD: ${op.computedBD ?? 0})</span>
+                                </div>
+                                <div class="w-full bg-zinc-950 h-2 rounded-full overflow-hidden border border-zinc-800 mt-0.5">
+                                    <div class="bg-red-500 h-full" style="width:${hpPct}%"></div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <div class="flex justify-between text-[11px] font-bold">
+                                    <span class="text-sky-400">Mana Capacity</span>
+                                    <span class="mono text-zinc-200">${curMana} / ${maxMana} Mana</span>
+                                </div>
+                                <div class="w-full bg-zinc-950 h-2 rounded-full overflow-hidden border border-zinc-800 mt-0.5">
+                                    <div class="bg-sky-400 h-full" style="width:${manaPct}%"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Core Stats & Defenses Pill Grid -->
+                        <div class="grid grid-cols-5 gap-1 text-center bg-zinc-900 p-1.5 rounded-lg border border-zinc-800 mt-2.5 text-[10px] mono">
+                            <div><span class="text-zinc-500 block">STR</span><strong>${op.str}</strong></div>
+                            <div><span class="text-zinc-500 block">DEX</span><strong>${op.dex}</strong></div>
+                            <div><span class="text-zinc-500 block">CON</span><strong>${op.con}</strong></div>
+                            <div><span class="text-zinc-500 block">WIS</span><strong>${op.wis}</strong></div>
+                            <div><span class="text-zinc-500 block">INT</span><strong>${op.int}</strong></div>
+                        </div>
+
+                        <div class="grid grid-cols-4 gap-1.5 text-center mt-2 text-[10px]">
+                            <div class="bg-zinc-900/80 p-1 rounded border border-zinc-800">
+                                <span class="text-zinc-400 block">Tangible</span>
+                                <strong class="text-emerald-400 mono text-xs">${op.computedTangible ?? 0}</strong>
+                            </div>
+                            <div class="bg-zinc-900/80 p-1 rounded border border-zinc-800">
+                                <span class="text-zinc-400 block">Total DR</span>
+                                <strong class="text-sky-300 mono text-xs">${op.computedDR ?? 0}</strong>
+                            </div>
+                            <div class="bg-zinc-900/80 p-1 rounded border border-zinc-800">
+                                <span class="text-zinc-400 block">AP Pool</span>
+                                <strong class="text-purple-300 mono text-xs">${op.curAP ?? 0}/${op.maxAP ?? 0}</strong>
+                            </div>
+                            <div class="bg-zinc-900/80 p-1 rounded border border-zinc-800">
+                                <span class="text-zinc-400 block">Weight</span>
+                                <strong class="text-amber-300 mono text-xs">${op.carriedWeight ?? 0}/${op.computedWeightCap ?? 0}</strong>
+                            </div>
+                        </div>
+
+                        <!-- Status & Mark Badges -->
+                        <div class="flex flex-wrap gap-1 mt-2.5">
+                            ${op.disease ? `<span class="bg-red-950 border border-red-500 text-red-200 text-[9px] font-black px-2 py-0.5 rounded uppercase">DISEASE: CAN'T HEAL</span>` : ''}
+                            ${(op.poison || (parseInt(op.poisonStacks) > 0)) ? `<span class="bg-lime-950 border border-lime-500 text-lime-200 text-[9px] font-black px-2 py-0.5 rounded uppercase">POISON (${op.poisonStacks || 0}): HEALS DMG</span>` : ''}
+                            ${op.bleed ? `<span class="bg-rose-950 border border-rose-600 text-rose-200 text-[9px] font-bold px-2 py-0.5 rounded uppercase">BLEEDING</span>` : ''}
+                            ${op.sunder ? `<span class="bg-orange-950 border border-orange-600 text-orange-200 text-[9px] font-bold px-2 py-0.5 rounded uppercase">SUNDERED</span>` : ''}
+                            ${op.elementalAfflictions ? ELEMENTAL_KEYS.filter(k => op.elementalAfflictions[k] && op.elementalAfflictions[k] !== 'none').map(k => `<span class="${ELEMENTAL_MATRIX[k].badgeClass} border text-[9px] font-extrabold px-2 py-0.5 rounded uppercase">${ELEMENTAL_MATRIX[k].icon} ${ELEMENTAL_MATRIX[k].name}: ${op.elementalAfflictions[k]}</span>`).join('') : ((op.afflictionTier && op.afflictionTier !== 'none') ? `<span class="bg-amber-950 border border-amber-500 text-amber-200 text-[9px] font-bold px-2 py-0.5 rounded uppercase">${op.afflictionTier} ${op.selectedAfflictionElement}</span>` : '')}
+                            ${op.marked ? `<span class="bg-purple-950 border border-purple-500 text-purple-200 text-[9px] font-bold px-2 py-0.5 rounded uppercase">MARK: +${op.level} ${op.markElement} / +${op.level} ${oppEl} Vuln</span>` : ''}
+                            ${Array.isArray(op.coresList) && op.coresList.length > 0 ? op.coresList.map(c => `<span class="bg-sky-950/90 border border-sky-600/60 text-sky-200 text-[9px] font-bold px-2 py-0.5 rounded">${c.name}: ${c.modTarget || 'HP'} ×${c.gradePoints}pt</span>`).join('') : ''}
+                        </div>
+                    </div>
+
+                    <!-- GM Quick Actions on Card -->
+                    <div class="flex justify-between items-center gap-2 pt-2 border-t border-zinc-800 text-[11px]">
+                        <button onclick="inspectOperativeFromGM('${id}')" class="flex-1 bg-sky-600/20 hover:bg-sky-600/40 text-sky-300 border border-sky-500/40 py-1 rounded font-bold transition">
+                            <i class="fa-solid fa-eye mr-1"></i>Load into Sheet View
+                        </button>
+                        <button onclick="removeOperativeFromRoom('${id}')" class="bg-zinc-900 hover:bg-red-950 text-zinc-400 hover:text-red-400 border border-zinc-800 px-2.5 py-1 rounded transition" title="Remove from Room">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+
+            document.getElementById('gm-phalanx-total').innerText = phalanxSum;
+            document.getElementById('gm-total-cc').innerText = `${totalPartyCC} CC`;
+        };
+
+        window.inspectOperativeFromGM = function(id) {
+            const data = partyRoster[id];
+            if (!data) return;
+            operativeId = id;
+            localStorage.setItem('bf_operative_id', operativeId);
+            applySheetState(data);
+            switchTopMode('player');
+            showToast(`Loaded ${data.name} into Operative Sheet View.`);
+        };
+
+        window.removeOperativeFromRoom = async function(id) {
+            delete partyRoster[id];
+            renderGMDashboard();
+            if (db && currentUser) {
+                try {
+                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bf_operatives', id));
+                } catch (e) {
+                    console.error("Delete doc error:", e);
+                }
+            }
+            showToast("Operative removed from room roster.");
+        };
+
+        // Serialization & State Management
+        function getSheetState() {
+            return {
+                operativeId,
+                roomCode: (document.getElementById('room-code-input').value || 'BRIGHT-FRACTURE-MAIN').trim().toUpperCase(),
+                name: document.getElementById('op-name').value,
+                player: document.getElementById('op-player').value,
+                campaign: document.getElementById('op-campaign').value,
+                opClass: document.getElementById('op-class').value,
+                subclass: document.getElementById('op-subclass').value,
+                race: document.getElementById('op-race').value,
+                level: parseInt(document.getElementById('op-level').value) || 0,
+                height: parseInt(document.getElementById('op-height').value) || 5,
+                unspentPoints,
+                shieldBearerCarryActive,
+                haulerCarryActive,
+                str: parseInt(document.getElementById('attr-str').value) || 1,
+                dex: parseInt(document.getElementById('attr-dex').value) || 1,
+                con: parseInt(document.getElementById('attr-con').value) || 1,
+                wis: parseInt(document.getElementById('attr-wis').value) || 1,
+                int: parseInt(document.getElementById('attr-int').value) || 1,
+                curHP: parseInt(document.getElementById('current-hp').value) || 0,
+                maxHP: parseInt(document.getElementById('max-hp-display').innerText) || 18,
+                hpBonus: parseInt(document.getElementById('hp-bonus-input').value) || 0,
+                comaStage: document.getElementById('coma-stage').value,
+                curMana: parseInt(document.getElementById('current-mana').value) || 0,
+                maxMana: parseInt(document.getElementById('max-mana-display').innerText) || 10,
+                manaBonus: parseInt(document.getElementById('mana-bonus-input').value) || 0,
+                curAP: parseInt(document.getElementById('current-ap').value) || 0,
+                maxAP: parseInt(document.getElementById('max-ap-display').innerText) || 2,
+                curCore: parseInt(document.getElementById('current-corehp').value) || 0,
+                maxCore: parseInt(document.getElementById('max-corehp').value) || 10,
+                elementalAfflictions: getActiveElementalAfflictions(),
+                disease: document.getElementById('status-disease').checked,
+                poison: document.getElementById('status-poison').checked,
+                poisonStacks: parseInt(document.getElementById('poison-stacks').value) || 0,
+                bleed: document.getElementById('status-bleed').checked,
+                sunder: document.getElementById('status-sunder').checked,
+                marked: document.getElementById('mark-active-toggle').checked,
+                markElement: document.getElementById('mark-element-select').value,
+                armorDR: parseInt(document.getElementById('armor-dr').value) || 0,
+                shieldDR: parseInt(document.getElementById('shield-dr').value) || 0,
+                carriedWeight: parseInt(document.getElementById('carried-weight').value) || 0,
+                cc: parseInt(document.getElementById('inv-cc').value) || 0,
+                supplies: parseInt(document.getElementById('inv-supplies').value) || 0,
+                notes: document.getElementById('inv-notes').value,
+                computedNonCombatMove: parseInt(document.getElementById('derived-ncmove').innerText) || 0,
+                computedCombatMove: parseInt(document.getElementById('derived-cmove').innerText) || 0,
+                computedTangible: parseInt(document.getElementById('derived-tangible').innerText) || 0,
+                computedDR: parseInt(document.getElementById('total-dr-badge').innerText) || 0,
+                computedBD: parseInt(document.getElementById('defense-bd-readout').innerText) || 0,
+                computedWeightCap: parseInt(document.getElementById('max-weight-inline').innerText) || 17,
+                weaponsList,
+                coresList,
+                updatedAt: Date.now()
+            };
+        }
+
+        function applySheetState(data) {
+            if (!data) return;
+            if (data.operativeId) {
+                operativeId = data.operativeId;
+                localStorage.setItem('bf_operative_id', operativeId);
+            }
+            if (data.roomCode) {
+                document.getElementById('room-code-input').value = data.roomCode;
+                document.getElementById('gm-room-label').innerText = data.roomCode;
+            }
+            document.getElementById('op-name').value = data.name ?? "Vex 'Bore-Blade' Thorne";
+            document.getElementById('op-player').value = data.player ?? "Operative 01";
+            document.getElementById('op-campaign').value = data.campaign ?? "Smokelands";
+            document.getElementById('op-class').value = data.opClass ?? "Syndicate Shade";
+            document.getElementById('op-subclass').value = data.subclass ?? "Core Crafter";
+            document.getElementById('op-race').value = data.race ?? "lagomorph";
+            document.getElementById('op-level').value = data.level ?? 5;
+            document.getElementById('op-height').value = data.height ?? 5;
+            unspentPoints = data.unspentPoints ?? 0;
+            document.getElementById('unspent-points-display').innerText = unspentPoints;
+            shieldBearerCarryActive = !!data.shieldBearerCarryActive;
+            haulerCarryActive = !!data.haulerCarryActive;
+            document.getElementById('attr-str').value = data.str ?? 6;
+            document.getElementById('attr-dex').value = data.dex ?? 8;
+            document.getElementById('attr-con').value = data.con ?? 5;
+            document.getElementById('attr-wis').value = data.wis ?? 5;
+            document.getElementById('attr-int').value = data.int ?? 5;
+            document.getElementById('current-hp').value = data.curHP ?? 18;
+            document.getElementById('hp-bonus-input').value = data.hpBonus ?? 0;
+            document.getElementById('coma-stage').value = data.comaStage ?? 'Conscious';
+            document.getElementById('current-mana').value = data.curMana ?? 10;
+            document.getElementById('mana-bonus-input').value = data.manaBonus ?? 0;
+            document.getElementById('current-ap').value = data.curAP ?? 2;
+            document.getElementById('current-corehp').value = data.curCore ?? 10;
+            document.getElementById('max-corehp').value = data.maxCore ?? 10;
+
+            ELEMENTAL_KEYS.forEach(el => {
+                const sel = document.getElementById('aff-tier-' + el);
+                if (!sel) return;
+                if (data.elementalAfflictions && data.elementalAfflictions[el]) {
+                    sel.value = data.elementalAfflictions[el];
+                } else if (data.afflictionTier && data.afflictionTier !== 'none' && data.selectedAfflictionElement === el) {
+                    sel.value = data.afflictionTier;
+                } else {
+                    sel.value = 'none';
+                }
+            });
+
+            document.getElementById('status-disease').checked = !!data.disease;
+            document.getElementById('status-poison').checked = !!data.poison;
+            document.getElementById('poison-stacks').value = data.poisonStacks ?? 0;
+            document.getElementById('status-bleed').checked = !!data.bleed;
+            document.getElementById('status-sunder').checked = !!data.sunder;
+            document.getElementById('mark-active-toggle').checked = !!data.marked;
+            document.getElementById('mark-element-select').value = data.markElement ?? 'Fire';
+            document.getElementById('armor-dr').value = data.armorDR ?? 6;
+            document.getElementById('shield-dr').value = data.shieldDR ?? 2;
+            document.getElementById('carried-weight').value = data.carriedWeight ?? 14;
+            document.getElementById('inv-cc').value = data.cc ?? 145;
+            document.getElementById('inv-supplies').value = data.supplies ?? 6;
+            document.getElementById('inv-notes').value = data.notes ?? "";
+            if (Array.isArray(data.weaponsList)) weaponsList = data.weaponsList;
+            if (Array.isArray(data.coresList)) coresList = data.coresList;
+            updateAfflictionDisplay();
+            calculateStats();
+        }
+
+        function saveLocal() {
+            localStorage.setItem('bf_operative_v4', JSON.stringify(getSheetState()));
+        }
+
+        // Clipboard / Discord JSON Modal Controls
+        window.toggleClipboardModal = function(show) {
+            const modal = document.getElementById('clipboard-modal');
+            if (show) {
+                document.getElementById('json-clipboard-area').value = JSON.stringify(getSheetState(), null, 2);
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            } else {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        };
+
+        window.copyClipboardJSON = function() {
+            const area = document.getElementById('json-clipboard-area');
+            area.select();
+            document.execCommand('copy');
+            showToast("Operative JSON copied to clipboard! Paste into Discord.");
+        };
+
+        window.exportJSONFile = function() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(getSheetState(), null, 2));
+            const dlAnchor = document.createElement('a');
+            dlAnchor.setAttribute("href", dataStr);
+            const cleanName = (document.getElementById('op-name').value || "operative").replace(/[^a-z0-9]/gi, '_').toLowerCase();
+            dlAnchor.setAttribute("download", `${cleanName}_bright_fracture.json`);
+            document.body.appendChild(dlAnchor);
+            dlAnchor.click();
+            dlAnchor.remove();
+            showToast("Operative .JSON file downloaded!");
+        };
+
+        window.loadFromClipboardJSON = function() {
+            const raw = document.getElementById('json-clipboard-area').value;
+            try {
+                const parsed = JSON.parse(raw);
+                applySheetState(parsed);
+                forceCloudSync(false);
+                toggleClipboardModal(false);
+                showToast(`Loaded & synced ${parsed.name || 'Operative'}!`);
+            } catch (e) {
+                showToast("Invalid JSON format. Please check the pasted text.");
+            }
+        };
+
+        window.toggleResetModal = function(show) {
+            const modal = document.getElementById('reset-modal');
+            if (show) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            } else {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        };
+
+        window.confirmNewOperative = function() {
+            operativeId = 'op_' + crypto.randomUUID().slice(0, 8);
+            localStorage.setItem('bf_operative_id', operativeId);
+            localStorage.removeItem('bf_operative_v4');
+            location.reload();
+        };
+
+        window.onload = function() {
+            const saved = localStorage.getItem('bf_operative_v4');
+            if (saved) {
+                try { applySheetState(JSON.parse(saved)); } catch (e) { calculateStats(); }
+            } else {
+                updateAfflictionDisplay();
+                calculateStats();
+            }
+            calcInsurance();
+            initFirebase();
+        };
+    </script>
+</body>
+</html>
